@@ -1,0 +1,13 @@
+# Build output
+/bin
+/build
+/dist
+/tmp
+/target
+
+
+
+# Go
+*.exe
+*.test
+*.out
