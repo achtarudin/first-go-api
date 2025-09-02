@@ -1,0 +1,16 @@
+services:
+  # Service untuk aplikasi Go
+  app:
+    # Membangun image dari Dockerfile di direktori saat ini (.)
+    build: 
+      context: .
+      dockerfile: docker/go.Dockerfile
+    container_name: go-app
+    ports:
+      # Memetakan port 8080 di mesin Anda ke port 8080 di dalam container
+      - "8080:8080"
+    volumes:
+      # Sinkronisasi direktori proyek Anda dengan direktori /app di dalam container.
+      # Ini adalah kunci utama agar hot-reloading berfungsi.
+      # Setiap perubahan file di lokal akan langsung tercermin di container.
+      - .:/app
