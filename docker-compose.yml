@@ -1,16 +1,27 @@
 services:
-  # Service untuk aplikasi Go
+  # Service untuk lingkungan PRODUCTION
+  # Menjalankan aplikasi yang sudah dicompile dari Dockerfile di atas
   app:
-    # Membangun image dari Dockerfile di direktori saat ini (.)
-    build: 
+    build:
       context: .
       dockerfile: docker/go.Dockerfile
-    container_name: go-app
+    container_name: go_app_prod
     ports:
-      # Memetakan port 8080 di mesin Anda ke port 8080 di dalam container
       - "8080:8080"
+    restart: unless-stopped
+
+  # Service untuk lingkungan DEVELOPMENT
+  # Menggunakan 'air' untuk live-reloading
+  dev:
+    # Kita tidak perlu Dockerfile khusus, cukup gunakan image golang
+    image: golang:1.24-alpine
+    container_name: go_app_dev
+    working_dir: /app
+    # 'volumes' akan me-mount kode lokal Anda ke dalam container.
+    # Ini memungkinkan 'air' untuk mendeteksi perubahan file.
     volumes:
-      # Sinkronisasi direktori proyek Anda dengan direktori /app di dalam container.
-      # Ini adalah kunci utama agar hot-reloading berfungsi.
-      # Setiap perubahan file di lokal akan langsung tercermin di container.
       - .:/app
+    ports:
+      - "8080:8080" # Gunakan port host yang berbeda agar tidak konflik
+    # Perintah ini akan menginstal 'air' jika belum ada, lalu menjalankannya
+    command: sh -c "go install github.com/air-verse/air@latest && air"

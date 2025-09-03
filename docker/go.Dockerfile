@@ -1,29 +1,41 @@
-# Menggunakan base image resmi Golang versi 1.21 berbasis Alpine
-# Alpine dipilih karena ukurannya yang sangat kecil
-FROM golang:1.24-alpine
+# =================================================================
+# TAHAP 1: BUILDER
+# Tahap ini menggunakan image Go lengkap untuk mengkompilasi aplikasi.
+# =================================================================
+FROM golang:1.24-alpine AS builder
 
-# Menginstal package yang dibutuhkan:
-# - git: diperlukan untuk 'go get' atau 'go install' dari repo
-# - build-base: berisi compiler C dan tools lain yang mungkin dibutuhkan dependensi
-RUN apk add --no-cache git build-base
-
-# Menetapkan direktori kerja di dalam container
+# Menetapkan direktori kerja
 WORKDIR /app
 
-# Menyalin file manajemen dependensi terlebih dahulu untuk memanfaatkan cache Docker
+# Menyalin file dependensi dan mengunduhnya untuk memanfaatkan cache
 COPY go.mod go.sum ./
-# Mengunduh semua dependensi
 RUN go mod download
 
-# Menyalin sisa kode sumber aplikasi Anda
+# Menyalin seluruh source code
 COPY . .
 
-# Menginstal 'air', sebuah tool untuk live-reloading aplikasi Go
-RUN CGO_ENABLED=0 go install github.com/air-verse/air@latest
+# Mengkompilasi aplikasi Go.
+# CGO_ENABLED=0 membuat biner yang statis (tidak bergantung pada library C sistem).
+# -o /app/main menentukan outputnya adalah satu file bernama 'main'.
+RUN CGO_ENABLED=0 go build -o /app/main .
 
-# Mengekspos port 8080 yang akan digunakan oleh aplikasi Go kita
+
+# =================================================================
+# TAHAP 2: FINAL
+# Tahap ini menggunakan base image yang sangat kecil dan hanya berisi
+# hasil kompilasi dari tahap sebelumnya.
+# =================================================================
+FROM alpine:latest
+
+# Menetapkan direktori kerja
+WORKDIR /app
+
+# Menyalin HANYA file biner 'main' yang sudah dicompile dari tahap 'builder'
+COPY --from=builder /app/main .
+
+# Mengekspos port yang digunakan oleh aplikasi
 EXPOSE 8080
 
-# Perintah default saat container dijalankan
-# 'air' akan memonitor perubahan file dan otomatis me-restart server
-CMD ["air"]
+# Perintah untuk menjalankan aplikasi saat container dimulai
+# Langsung menjalankan file binernya, bukan via 'air'
+CMD ["./main"]
