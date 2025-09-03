@@ -37,7 +37,7 @@ test-bench:
 
 # Build the application
 build:
-	go build -o bin/api main.go
+	go build -o bin/main main.go
 
 # Run the application
 run:

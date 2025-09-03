@@ -37,7 +37,7 @@ jobs:
         run: make build
       - name: Run and test application
         run: |
-          cd bin && ./api &
+          cd bin && ./main &
           SERVER_PID=$!
           sleep 3
           curl -f http://localhost:8080
@@ -47,7 +47,7 @@ jobs:
 
 
   deploy-to-server:
-    if: false  # Ubah ke 'true' untuk mengaktifkan job ini
+    if: true  # Ubah ke 'true' untuk mengaktifkan job ini
     needs: test
     runs-on: [self-hosted, Linux]
     steps:
