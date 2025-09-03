@@ -3,9 +3,10 @@ services:
   # Menjalankan aplikasi yang sudah dicompile dari Dockerfile di atas
   app:
     build:
+      image: first-go-api:latest
       context: .
       dockerfile: docker/go.Dockerfile
-    container_name: go_app_prod
+    container_name: first_go_api_prod
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -15,7 +16,7 @@ services:
   dev:
     # Kita tidak perlu Dockerfile khusus, cukup gunakan image golang
     image: golang:1.24-alpine
-    container_name: go_app_dev
+    container_name: first_go_api_dev
     working_dir: /app
     # 'volumes' akan me-mount kode lokal Anda ke dalam container.
     # Ini memungkinkan 'air' untuk mendeteksi perubahan file.

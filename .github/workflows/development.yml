@@ -53,14 +53,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Remove old container if exists
-        run: |
-          docker rm -f go_app_prod || true
       - name: Copy project to /app
         run: |
           sudo mkdir -p /app
           sudo cp -r . /app/
           sudo chown -R $USER:$USER /app
+
+      - name: Remove old container if exists
+        run: |
+          docker rm -f first_go_api_prod || true
+
+      - name: Remove innermost first-go-api folder
+        run: rm -rf ~/actions-runner/first-go-api/first-go-api/first-go-api
+
       - name: Build and Run Production App with Docker Compose
         working-directory: /app
         run: |
@@ -68,5 +73,6 @@ jobs:
           # Tunggu beberapa detik agar service benar-benar up
           sleep 5
           curl -f http://localhost:8080
+
       - name: Deploy Finished Marker
         run: echo "=== DEPLOYMENT SELESAI ==="
