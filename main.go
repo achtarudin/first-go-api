@@ -1,7 +1,7 @@
 package main
 
 import (
-	"net/http"
+	"cutbray/first_api/handler/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,13 +9,7 @@ import (
 func main() {
 	server := gin.Default()
 
-	server.GET("/", hello)
+	http.NewHelloHandler(server)
 
 	server.Run(":8080")
-}
-
-func hello(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Hello, World Git!",
-	})
 }
