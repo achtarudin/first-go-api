@@ -20,6 +20,7 @@ jobs:
         run: make test-verbose
 
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -34,14 +35,12 @@ jobs:
         run: make deps
       - name: Build the application
         run: make build
-      - name: Run the application and Stop server after 10 seconds
+      - name: Run and test application
         run: |
           cd bin && ./api &
           SERVER_PID=$!
-          sleep 10
-          kill $SERVER_PID
-      - name: Test the application
-        run: |
+          sleep 3
           curl -f http://localhost:8080
+          kill $SERVER_PID
       - name: Clean bin
         run: make clean
