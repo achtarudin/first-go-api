@@ -52,7 +52,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+      - name: Copy project to /app
+        run: |
+          sudo mkdir -p /app
+          sudo cp -r . /app/
+          sudo chown -R $USER:$USER /app
       - name: Build and Run Production App with Docker Compose
+        working-directory: /app
         run: |
           docker compose -f docker-compose.yml up -d --build app
           # Tunggu beberapa detik agar service benar-benar up
