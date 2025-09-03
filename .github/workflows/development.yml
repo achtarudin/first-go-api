@@ -34,5 +34,9 @@ jobs:
         run: make deps
       - name: Build the application
         run: make build
-      - name: Run the application
-        run: cd bin && ./api
+      - name: Run the application and Stop server after 10 seconds
+        run: |
+          cd bin && ./api &
+          SERVER_PID=$!
+          sleep 10
+          kill $SERVER_PID
