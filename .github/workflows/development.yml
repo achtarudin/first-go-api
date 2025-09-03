@@ -40,3 +40,8 @@ jobs:
           SERVER_PID=$!
           sleep 10
           kill $SERVER_PID
+      - name: Test the application
+        run: |
+          curl -f http://localhost:8080/health
+      - name: Clean bin
+        run: make clean
