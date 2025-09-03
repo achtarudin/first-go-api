@@ -69,6 +69,7 @@ jobs:
       - name: Build and Run Production App with Docker Compose
         working-directory: /app
         run: |
+          echo $(pwd)
           docker compose -f docker-compose.yml up -d --build app
           # Tunggu beberapa detik agar service benar-benar up
           sleep 5
