@@ -76,4 +76,5 @@ jobs:
           curl -f http://localhost:8080
 
       - name: Deploy Finished Marker
+        working-directory: /app
         run: echo "=== DEPLOYMENT SELESAI ==="
