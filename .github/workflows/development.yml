@@ -48,26 +48,16 @@ jobs:
 
   deploy-to-server:
     needs: test
-    runs-on: [self-hosted, linux]
+    runs-on: [self-hosted, Linux]
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-
-      - name: Copy project to /app
-        run: |
-          sudo mkdir -p /app
-          sudo cp -r . /app/
-          sudo chown -R $USER:$USER /app
 
       - name: Remove old container if exists
         run: |
           docker rm -f first_go_api_prod || true
 
-      - name: Remove innermost first-go-api folder
-        run: rm -rf ~/actions-runner/first-go-api/first-go-api/first-go-api
-
       - name: Build and Run Production App with Docker Compose
-        working-directory: /app
         run: |
           echo $(pwd)
           docker compose -f docker-compose.yml up -d --build app
@@ -76,5 +66,4 @@ jobs:
           curl -f http://localhost:8080
 
       - name: Deploy Finished Marker
-        working-directory: /app
         run: echo "=== DEPLOYMENT SELESAI ==="
