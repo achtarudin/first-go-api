@@ -44,3 +44,18 @@ jobs:
           kill $SERVER_PID
       - name: Clean bin
         run: make clean
+
+
+  deploy-to-server:
+    needs: test
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Build and Run Production App with Docker Compose
+        run: |
+          docker compose -f docker-compose.yml up -d --build app
+          # Tunggu beberapa detik agar service benar-benar up
+          sleep 5
+          curl -f http://localhost:8080
+          docker compose -f docker-compose.yml down
