@@ -16,13 +16,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
+      - name: Build and run tests in Docker
         run: |
-          docker build -f docker/go.Dockerfile -t go-api:test .
+          docker build -f docker/go.test.Dockerfile -t go-api:test .
+          docker run --rm go-api:test
 
-      - name: Run tests in Docker container
+      - name: Build production Docker image
         run: |
-          docker run --rm go-api:test sh -c "go test ./... -v"
+          docker build -f docker/go.Dockerfile -t go-api:latest .
 
   build-and-deploy-docker:
     needs: test-with-docker
