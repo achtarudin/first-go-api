@@ -42,6 +42,6 @@ jobs:
           kill $SERVER_PID
       - name: Test the application
         run: |
-          curl -f http://localhost:8080/health
+          curl -f http://localhost:8080
       - name: Clean bin
         run: make clean
