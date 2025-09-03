@@ -47,7 +47,7 @@ jobs:
 
 
   deploy-to-server:
-    if: true  # Ubah ke 'true' untuk mengaktifkan job ini
+    if: false  # Ubah ke 'true' untuk mengaktifkan job ini
     needs: test
     runs-on: [self-hosted, Linux]
     steps:
