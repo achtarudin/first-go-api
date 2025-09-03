@@ -14,15 +14,13 @@ services:
   # Service untuk lingkungan DEVELOPMENT
   # Menggunakan 'air' untuk live-reloading
   dev:
-    # Kita tidak perlu Dockerfile khusus, cukup gunakan image golang
-    image: golang:1.24-alpine
+    build:
+      context: .
+      dockerfile: docker/go.dev.Dockerfile
     container_name: first_go_api_dev
     working_dir: /app
-    # 'volumes' akan me-mount kode lokal Anda ke dalam container.
-    # Ini memungkinkan 'air' untuk mendeteksi perubahan file.
     volumes:
       - .:/app
     ports:
       - "8080:8080" # Gunakan port host yang berbeda agar tidak konflik
-    # Perintah ini akan menginstal 'air' jika belum ada, lalu menjalankannya
-    command: sh -c "go install github.com/air-verse/air@latest && air"
+  
