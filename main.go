@@ -16,6 +16,6 @@ func main() {
 
 func hello(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Hello, World KOi!",
+		"message": "Hello, World Git!",
 	})
 }
