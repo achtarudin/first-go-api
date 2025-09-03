@@ -58,4 +58,5 @@ jobs:
           # Tunggu beberapa detik agar service benar-benar up
           sleep 5
           curl -f http://localhost:8080
-          docker compose -f docker-compose.yml down
+      - name: Deploy Finished Marker
+        run: echo "=== DEPLOYMENT SELESAI ==="
