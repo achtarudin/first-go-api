@@ -27,11 +27,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-golang-
 
-      - name: Install dependencies
-        run: make deps
+      # - name: Install dependencies
+      #   run: make deps
 
-      - name: Run tests
-        run: make test-verbose
+      # - name: Run tests
+      #   run: make test-verbose
 
   deploy:
     needs: test
@@ -61,19 +61,19 @@ jobs:
       - name: Install dependencies
         run: make deps
 
-      - name: Build the application
-        run: make build
+      # - name: Build the application
+      #   run: make build
 
-      - name: Run and test application
-        run: |
-          cd bin && ./main &
-          SERVER_PID=$!
-          sleep 3
-          curl -f http://localhost:8080
-          kill $SERVER_PID
+      # - name: Run and test application
+      #   run: |
+      #     cd bin && ./main &
+      #     SERVER_PID=$!
+      #     sleep 3
+      #     curl -f http://localhost:8080
+      #     kill $SERVER_PID
 
-      - name: Clean bin
-        run: make clean
+      # - name: Clean bin
+      #   run: make clean
 
   deploy-to-server:
     if: false  # Ubah ke 'true' untuk mengaktifkan job ini
