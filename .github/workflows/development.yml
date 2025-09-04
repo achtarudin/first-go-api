@@ -8,14 +8,28 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.24'
+
       - name: Check go version
         run: go version
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Install dependencies
         run: make deps
+
       - name: Run tests
         run: make test-verbose
 
@@ -25,16 +39,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.24'
+
       - name: Check go version
         run: go version
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+              
       - name: Install dependencies
         run: make deps
+
       - name: Build the application
         run: make build
+
       - name: Run and test application
         run: |
           cd bin && ./main &
@@ -42,6 +71,7 @@ jobs:
           sleep 3
           curl -f http://localhost:8080
           kill $SERVER_PID
+
       - name: Clean bin
         run: make clean
 
