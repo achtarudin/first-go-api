@@ -27,7 +27,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       
       - name: Install dependencizes
-        if: steps.cache.outputs.cache-hit != 'true'
         run: make deps
 
       - name: Run tests
@@ -58,7 +57,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
         run: make deps
 
       - name: Build the application
