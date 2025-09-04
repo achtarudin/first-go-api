@@ -1,6 +1,6 @@
 name: Development Workflow
 
-on: [push]
+on: [push, workflow_dispatch]
 
 jobs:
   test:
@@ -44,7 +44,6 @@ jobs:
           kill $SERVER_PID
       - name: Clean bin
         run: make clean
-
 
   deploy-to-server:
     if: false  # Ubah ke 'true' untuk mengaktifkan job ini
