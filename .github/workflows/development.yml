@@ -19,13 +19,14 @@ jobs:
 
       - name: Cache go modules
         uses: actions/cache/save@v4
+        id: cache
         with:
           path: |
             ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       
       - name: Install dependencizes
-        run: go mod tidy
+        run: make deps
 
       - name: Run tests
         run: make test-verbose
@@ -47,6 +48,7 @@ jobs:
 
       - name: Cache go modules
         uses: actions/cache/save@v4
+        id: cache
         with:
           path: |
             ~/go/pkg/mod
