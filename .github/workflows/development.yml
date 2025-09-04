@@ -23,6 +23,7 @@ jobs:
         with:
           path: |
             ~/go/pkg/mod
+            ~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       
       - name: Install dependencizes
@@ -52,6 +53,7 @@ jobs:
         with:
           path: |
             ~/go/pkg/mod
+            ~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           
       - name: Install dependencies
