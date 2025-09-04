@@ -18,15 +18,13 @@ jobs:
         run: go version
 
       - name: Setup Golang caches
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
           key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-golang-
-
+      
       - name: Install dependencies
         run: make deps
 
@@ -49,15 +47,13 @@ jobs:
         run: go version
 
       - name: Setup Golang caches
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
           key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-golang-
-              
+          
       - name: Install dependencies
         run: make deps
 
