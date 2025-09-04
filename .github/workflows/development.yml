@@ -27,8 +27,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-golang-
 
-      # - name: Install dependencies
-      #   run: make deps
+      - name: Install dependencies
+        run: make deps
 
       # - name: Run tests
       #   run: make test-verbose
