@@ -32,7 +32,7 @@ jobs:
       - name: Run tests
         run: make test-verbose
 
-  deploy:
+  build:
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -70,8 +70,11 @@ jobs:
           curl -f http://localhost:8080
           kill $SERVER_PID
 
-      - name: Clean bin
-        run: make clean
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with: 
+          name: binary-file
+          path: bin
 
   deploy-to-server:
     if: false  # Ubah ke 'true' untuk mengaktifkan job ini
