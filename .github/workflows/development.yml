@@ -18,7 +18,7 @@ jobs:
         run: go version
 
       - name: Cache go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.4
         with:
           path: |
             ~/go/pkg/mod
@@ -48,7 +48,7 @@ jobs:
         run: go version
 
       - name: Cache go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.4
         with:
           path: |
             ~/go/pkg/mod
