@@ -18,13 +18,11 @@ jobs:
         run: go version
 
       - name: Cache go modules
-        uses: actions/cache@v4.2.4
+        uses: actions/cache/save@v4
         with:
           path: |
             ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       
       - name: Install dependencizes
         run: go mod tidy
@@ -48,13 +46,11 @@ jobs:
         run: go version
 
       - name: Cache go modules
-        uses: actions/cache@v4.2.4
+        uses: actions/cache/save@v4
         with:
           path: |
             ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
           
       - name: Install dependencies
         run: make deps
