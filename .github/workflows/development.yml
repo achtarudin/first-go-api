@@ -81,10 +81,10 @@ jobs:
     runs-on: [self-hosted, Linux]
     steps: 
       - name: Get build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/download-artifact@v4
         with: 
           name: binary-file
-          path: /root
+          path: bin
 
 
   deploy-to-server:
