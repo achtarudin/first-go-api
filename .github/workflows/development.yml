@@ -27,7 +27,7 @@ jobs:
             ${{ runner.os }}-go-
       
       - name: Install dependencizes
-        run: make deps
+        run: go mod tidy
 
       - name: Run tests
         run: make test-verbose
