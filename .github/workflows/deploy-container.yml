@@ -22,6 +22,22 @@ jobs:
 
       - name: Install make
         run: apk add --no-cache make
+
+
+      - name: Cache go modules
+        uses: actions/cache/save@v4
+        id: cache
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      
+      - name: Install dependencizes
+        run: make deps
+
+      - name: Run tests
+        run: make test-verbose
       
       - name: Deploy container
         run: echo "Deploy container logic here"
