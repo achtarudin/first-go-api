@@ -50,6 +50,7 @@ jobs:
           kill $SERVER_PID
 
   build:
+    needs: test
     runs-on: ubuntu-latest
     container:
       image: golang:1.24-alpine
