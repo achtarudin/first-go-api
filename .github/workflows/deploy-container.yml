@@ -18,8 +18,10 @@ jobs:
       - name: Log go version
         run: go version
 
-      - name: Install make and curl
-        run: apk add --no-cache  make curl
+      - name: Install make, curl, and tar
+        run: |
+          apk add --no-cache make curl tar
+          ln -sf /usr/bin/tar /bin/tar
 
       - name: Checkout code
         uses: actions/checkout@v5
