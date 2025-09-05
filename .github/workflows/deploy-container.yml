@@ -60,7 +60,7 @@ jobs:
 
       - name: Install make, curl, and tar
         run: |
-          apk add --no-cache make curl tar
+          apk add --no-cache make curl tar coreutils
 
       - name: Checkout code
         uses: actions/checkout@v5
@@ -80,6 +80,9 @@ jobs:
 
       - name: Build the application
         run: make build
+
+      - name: Check SHA256 of binary
+        run: sha256sum bin/main
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
