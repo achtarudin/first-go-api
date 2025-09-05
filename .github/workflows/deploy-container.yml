@@ -14,8 +14,6 @@ jobs:
       image: golang:1.24-alpine
       
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
 
       - name: Log go version
         run: go version
@@ -23,6 +21,8 @@ jobs:
       - name: Install make
         run: apk add --no-cache make
 
+      - name: Checkout code
+        uses: actions/checkout@v5
 
       - name: Cache go modules
         uses: actions/cache/save@v4
@@ -33,8 +33,8 @@ jobs:
             ~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
       
-      - name: Install dependencizes
-        run: make deps
+      - name: Install dependencies
+        run: go mod tidy
 
       - name: Run tests
         run: make test-verbose
