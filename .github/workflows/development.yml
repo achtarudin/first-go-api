@@ -16,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Object Github
-        run: echo ${{github}}
+        run: echo ${{toJson(github)}}
+
   test:
     if: inputs.tags == true
     runs-on: ubuntu-latest
