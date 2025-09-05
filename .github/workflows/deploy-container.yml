@@ -23,9 +23,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Install dependencies
-        run: go mod tidy
-
       - name: Cache go modules
         uses: actions/cache/save@v4
         id: cache
@@ -34,6 +31,10 @@ jobs:
             $HOME/.cache/go-build
             /go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: go mod tidy
 
       - name: Run tests
         run: make test-verbose
@@ -48,6 +49,9 @@ jobs:
           sleep 3
           curl -f http://localhost:8080
           kill $SERVER_PID
+
+      - name: Output Step
+        run: echo Cached ${{ steps.cache.outputs.cache-hit }}
 
   build:
     needs: test
