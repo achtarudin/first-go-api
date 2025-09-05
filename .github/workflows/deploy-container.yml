@@ -92,16 +92,33 @@ jobs:
 
   deploy: 
     needs: build
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
     runs-on: [self-hosted, Linux]
     steps: 
-      - name: Get build artifacts
-        uses: actions/download-artifact@v4
-        with: 
-          name: binary-file
-          path: bin
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-      - name: Check file exists
-        run: ls -la bin
+      - name: Remove old container if exists
+        run: |
+          docker rm -f first_go_api_prod || true
 
-      - name: Check SHA256 of binary
-        run: sha256sum bin/main
+      - name: Build and Run Production App with Docker Compose
+        run: |
+          echo $(pwd)
+          docker compose -f docker-compose.yml up -d --build app
+      
+      - name: Deploy Finished Marker
+        run: echo "=== DEPLOYMENT SELESAI ==="
+      
+
+      # - name: Get build artifacts
+      #   uses: actions/download-artifact@v4
+      #   with: 
+      #     name: binary-file
+      #     path: bin
+
+      # - name: Check file exists
+      #   run: ls -la bin
+
+      # - name: Check SHA256 of binary
+      #   run: sha256sum bin/main

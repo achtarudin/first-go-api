@@ -25,7 +25,7 @@ RUN CGO_ENABLED=0 go build -o /app/main .
 # Tahap ini menggunakan base image yang sangat kecil dan hanya berisi
 # hasil kompilasi dari tahap sebelumnya.
 # =================================================================
-FROM alpine:latest
+FROM alpine:3.22
 
 # Menetapkan direktori kerja
 WORKDIR /app
