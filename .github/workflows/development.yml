@@ -92,7 +92,7 @@ jobs:
 
   deploy-to-server:
     if: false  # Ubah ke 'true' untuk mengaktifkan job ini
-    needs: test
+    needs: build
     runs-on: [self-hosted, Linux]
     steps:
       - name: Checkout code
