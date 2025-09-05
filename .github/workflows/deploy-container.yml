@@ -101,7 +101,7 @@ jobs:
           path: bin
 
       - name: Check file exists
-        run: ls -ls bin
+        run: ls -la bin
 
       - name: Check SHA256 of binary
         run: sha256sum bin/main
