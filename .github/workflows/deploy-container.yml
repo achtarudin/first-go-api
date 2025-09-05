@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          echo {{ toJSON(steps.cache) }}
+          echo ${{ toJSON(steps.cache) }}
           go mod tidy
 
       - name: Run tests
