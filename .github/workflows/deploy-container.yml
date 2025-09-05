@@ -8,25 +8,20 @@ on:
       - dev
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
     container:
       image: golang:1.24-alpine
-      
     steps:
-
       - name: Log go version
         run: go version
 
       - name: Install make, curl, and tar
         run: |
           apk add --no-cache make curl tar
-          
+
       - name: Checkout code
         uses: actions/checkout@v5
-      
-      - name: Install dependencies
-        run: go mod tidy
 
       - name: Cache go modules
         uses: actions/cache/save@v4
@@ -36,6 +31,9 @@ jobs:
             $HOME/.cache/go-build
             /go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Install dependencies
+        run: go mod tidy
 
       - name: Run tests
         run: make test-verbose
@@ -51,11 +49,48 @@ jobs:
           curl -f http://localhost:8080
           kill $SERVER_PID
 
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.24-alpine
+    steps:
+      - name: Log go version
+        run: go version
+
+      - name: Install make, curl, and tar
+        run: |
+          apk add --no-cache make curl tar
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Cache go modules
+        uses: actions/cache/save@v4
+        id: cache
+        with:
+          path: |
+            $HOME/.cache/go-build
+            /go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Build the application
+        run: make build
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
+        with:
+          name: binary-file
+          path: bin
+
+  deploy: 
+    needs: build
+    runs-on: [self-hosted, Linux]
+    steps: 
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4
         with: 
           name: binary-file
           path: bin
-      
-      - name: Deploy container
-        run: echo "Deploy container logic here"
