@@ -2,12 +2,23 @@ name: Development Workflow
 
 on: 
   workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Test scenario tags'
+        required: false
+        type: boolean
+
   push: 
     branches: [main, dev]
 
 jobs:
+  log-input:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Object Github
+        run: echo ${{github}}
   test:
-    if: false
+    if: inputs.tags == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -37,7 +48,7 @@ jobs:
         run: make test-verbose
 
   build:
-    if: false
+    if: inputs.tags == true
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +93,7 @@ jobs:
           path: bin
 
   deploy: 
-    if: false
+    if: inputs.tags == true
     needs: build
     runs-on: [self-hosted, Linux]
     steps: 
