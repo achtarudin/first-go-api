@@ -23,22 +23,38 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v5
-
-      - name: Cache go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            /go/pkg/mod
-            $HOME/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       
       - name: Install dependencies
         run: go mod tidy
 
+      - name: Cache go modules
+        uses: actions/cache/save@v4
+        id: cache
+        with:
+          path: |
+            $HOME/.cache/go-build
+            /go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
       - name: Run tests
         run: make test-verbose
+
+      - name: Build the application
+        run: make build
+
+      - name: Run and test application
+        run: |
+          cd bin && ./main &
+          SERVER_PID=$!
+          sleep 3
+          curl -f http://localhost:8080
+          kill $SERVER_PID
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with: 
+          name: binary-file
+          path: bin
       
       - name: Deploy container
         run: echo "Deploy container logic here"
