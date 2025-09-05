@@ -24,7 +24,7 @@ func NewHelloHandler(server *gin.Engine) {
 func (h *helloHandler) Hello(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
-		Message: "Hello, asas",
+		Message: "Hello, Ngopi yuk!",
 		Data:    []any{},
 	})
 }
