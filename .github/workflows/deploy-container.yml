@@ -23,6 +23,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Install dependencies
+        run: go mod tidy
+
       - name: Cache go modules
         uses: actions/cache/save@v4
         id: cache
@@ -31,9 +34,6 @@ jobs:
             $HOME/.cache/go-build
             /go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-
-      - name: Install dependencies
-        run: go mod tidy
 
       - name: Run tests
         run: make test-verbose
