@@ -51,7 +51,7 @@ jobs:
           kill $SERVER_PID
 
       - name: Output Step
-        run: echo Cached ${{ steps.cache.outputs.cache-hit }}
+        run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}} 
 
   build:
     needs: test
@@ -96,7 +96,7 @@ jobs:
 
   deploy: 
     needs: build
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: [self-hosted, Linux]
     steps: 
       - name: Checkout code
