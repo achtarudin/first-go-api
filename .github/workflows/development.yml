@@ -1,6 +1,9 @@
 name: Development Workflow
 
-on: [push, workflow_dispatch]
+on: 
+  workflow_dispatch:
+  push: 
+    branches: [main]
 
 jobs:
   test:
