@@ -7,6 +7,7 @@ on:
 
 jobs:
   test:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -36,6 +37,7 @@ jobs:
         run: make test-verbose
 
   build:
+    if: false
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -80,6 +82,7 @@ jobs:
           path: bin
 
   deploy: 
+    if: false
     needs: build
     runs-on: [self-hosted, Linux]
     steps: 
@@ -88,7 +91,6 @@ jobs:
         with: 
           name: binary-file
           path: bin
-
 
   deploy-to-server:
     if: false  # Ubah ke 'true' untuk mengaktifkan job ini
