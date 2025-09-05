@@ -3,24 +3,25 @@ name: Deploy Container
 on:
   workflow_dispatch:
   push:
-    branches: [main, dev]
+    branches:
+      - main
+      - dev
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     container:
       image: golang:1.24-alpine
+      
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
 
       - name: Log go version
         run: go version
 
       - name: Install make
         run: apk add --no-cache make
-
-      - name: Checkout code
-        uses: actions/checkout@v5
       
       - name: Deploy container
         run: echo "Deploy container logic here"
-			
