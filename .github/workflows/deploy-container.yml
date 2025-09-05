@@ -30,7 +30,7 @@ jobs:
           path: |
             $HOME/.cache/go-build
             /go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -76,7 +76,7 @@ jobs:
           path: |
             $HOME/.cache/go-build
             /go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
