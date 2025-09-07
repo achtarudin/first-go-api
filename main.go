@@ -5,18 +5,17 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
 func main() {
 
 	// Load .env file
-	err := godotenv.Load()
-	if err != nil {
-		c := color.New(color.BgRed, color.FgWhite).Add(color.Bold)
-		panic(c.Sprintf("Fatal error config file: %v", err))
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	c := color.New(color.BgRed, color.FgWhite).Add(color.Bold)
+	// 	panic(c.Sprintf("Fatal error config file: %v", err))
+	// }
 
 	// Read environment variables
 	viper.AutomaticEnv()
