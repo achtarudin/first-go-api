@@ -1,3 +1,23 @@
+definitions:
+  HelloRequest:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  SuccessResponse:
+    properties:
+      data: {}
+      message:
+        example: Message success
+        type: string
+      status:
+        example: 200
+        type: integer
+    type: object
 info:
   contact: {}
 paths:
@@ -6,11 +26,24 @@ paths:
       consumes:
       - application/json
       description: Hello Handler
+      parameters:
+      - description: search by name
+        in: query
+        name: name
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
         "201":
           description: Created
         "400":
@@ -19,7 +52,100 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Show a hello message
       tags:
       - Hello
+  /post-hello:
+    post:
+      consumes:
+      - application/json
+      description: Hello message json body
+      parameters:
+      - description: Body json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/HelloRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Post a hello message using json body
+      tags:
+      - Hello
+  /post-hello-form:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Hello message form data
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Age
+        in: formData
+        name: age
+        required: true
+        type: integer
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: File to upload
+        in: formData
+        name: files
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Post a hello message using form data
+      tags:
+      - Hello
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

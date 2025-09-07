@@ -1,17 +1,17 @@
 package main
 
 import (
-	"cutbray/first_api/docs"
 	handler "cutbray/first_api/handler/http"
 
 	"github.com/fatih/color"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 
 	// Read environment variables
@@ -23,21 +23,13 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	// programmatically set swagger info
-	docs.SwaggerInfo.Title = "First Go API"
-	docs.SwaggerInfo.Description = "This is a sample server for the First Go API."
-	docs.SwaggerInfo.Version = "1.0"
-	// docs.SwaggerInfo.Host = "localhost:8080"
-	// docs.SwaggerInfo.BasePath = "/"
-	// docs.SwaggerInfo.Schemes = []string{"http", "https"}
-
 	// Initialize Gin router
 	server := gin.Default()
+	server.Use(cors.Default())
 	server.SetTrustedProxies([]string{"127.0.0.1"})
 
-	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 	// Initialize handlers
+	handler.NewSwaggerHandler(server, "First Go API", "This is a sample server for the First Go API.")
 	handler.NewHelloHandler(server)
 
 	server.Run(":8080")
