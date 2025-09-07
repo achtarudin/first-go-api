@@ -55,7 +55,7 @@ func (h *helloHandler) Hello(c *gin.Context) {
 //	@Description	Hello message json body
 //	@Tags			Hello
 //	@Accept			json
-//	@Param			payload		body	request.HelloRequest	true	"Body json type"
+//	@Param			payload		body	request.HelloRequest	true	"json type"
 //	@Produce		json
 //		@Success		200 {object} response.SuccessResponse{data=[]any} "success response so the data field is array of any type"
 //	@Success		201

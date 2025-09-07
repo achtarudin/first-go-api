@@ -1,7 +1,7 @@
 package request
 
 type HelloRequest struct {
-	Name  string `json:"name"`
-	Age   int    `json:"age" `
-	Email string `json:"email"`
+	Name  string `json:"name" example:"John Doe"`
+	Age   int    `json:"age" example:"27"`
+	Email string `json:"email" example:"john.doe@example.com"`
 } //@name HelloRequest

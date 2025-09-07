@@ -91,7 +91,7 @@ const docTemplate = `{
                 "summary": "Post a hello message using json body",
                 "parameters": [
                     {
-                        "description": "Body json type",
+                        "description": "json type",
                         "name": "payload",
                         "in": "body",
                         "required": true,
@@ -114,6 +114,9 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {}
+                                        },
+                                        "message": {
+                                            "type": "string"
                                         }
                                     }
                                 }
@@ -219,13 +222,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "age": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 27
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "john.doe@example.com"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "John Doe"
                 }
             }
         },

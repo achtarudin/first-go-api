@@ -2,10 +2,13 @@ definitions:
   HelloRequest:
     properties:
       age:
+        example: 27
         type: integer
       email:
+        example: john.doe@example.com
         type: string
       name:
+        example: John Doe
         type: string
     type: object
   SuccessResponse:
@@ -63,7 +66,7 @@ paths:
       - application/json
       description: Hello message json body
       parameters:
-      - description: Body json type
+      - description: json type
         in: body
         name: payload
         required: true
@@ -81,6 +84,8 @@ paths:
                 data:
                   items: {}
                   type: array
+                message:
+                  type: string
               type: object
         "201":
           description: Created
