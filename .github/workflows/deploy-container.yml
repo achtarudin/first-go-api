@@ -1,0 +1,128 @@
+name: Deploy Container
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.24-alpine
+    steps:
+      - name: Log go version
+        run: go version
+
+      - name: Install make, curl, and tar
+        run: |
+          apk add --no-cache make curl tar
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Cache go modules
+        uses: actions/cache/save@v4
+        id: cache
+        with:
+          path: |
+            $HOME/.cache/go-build
+            /go/pkg/mod
+          key: go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: go mod tidy
+
+      - name: Run tests
+        run: make test-verbose
+
+      - name: Build the application
+        run: make build
+
+      - name: Run and test application
+        run: |
+          cd bin && ./main &
+          SERVER_PID=$!
+          sleep 3
+          curl -f http://localhost:8080
+          kill $SERVER_PID
+
+      - name: Output Step
+        run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}} 
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.24-alpine
+    steps:
+      - name: Log go version
+        run: go version
+
+      - name: Install make, curl, and tar
+        run: |
+          apk add --no-cache make curl tar coreutils
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Cache go modules
+        uses: actions/cache/restore@v4
+        id: cache
+        with:
+          path: |
+            $HOME/.cache/go-build
+            /go/pkg/mod
+          key: go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: go mod tidy
+
+      - name: Build the application
+        run: make build
+
+      - name: Check SHA256 of binary
+        run: sha256sum bin/main
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-file
+          path: bin
+
+  deploy: 
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux]
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Remove old container if exists
+        run: |
+          docker rm -f first_go_api_prod || true
+
+      - name: Build and Run Production App with Docker Compose
+        run: |
+          echo $(pwd)
+          docker compose -f docker-compose.yml up -d --build app
+      
+      - name: Deploy Finished Marker
+        run: echo "=== DEPLOYMENT SELESAI ==="
+      
+
+      # - name: Get build artifacts
+      #   uses: actions/download-artifact@v4
+      #   with: 
+      #     name: binary-file
+      #     path: bin
+
+      # - name: Check file exists
+      #   run: ls -la bin
+
+      # - name: Check SHA256 of binary
+      #   run: sha256sum bin/main

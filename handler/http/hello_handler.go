@@ -21,10 +21,22 @@ func NewHelloHandler(server *gin.Engine) {
 
 }
 
+// Hello godoc
+// @Summary      Show a hello message
+// @Description  Hello Handler
+// @Tags         Hello
+// @Accept       json
+// @Produce      json
+// @Success      200
+// @Success      201
+// @Failure      400
+// @Failure      404
+// @Failure      500
+// @Router       / [get]
 func (h *helloHandler) Hello(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
-		Message: "Hello, World Moncos Lowrider!",
+		Message: "Hello, Ngopi yuk!",
 		Data:    []any{},
 	})
 }

@@ -1,0 +1,128 @@
+name: Development Workflow
+
+on: 
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Test scenario tags'
+        required: false
+        type: boolean
+
+  push: 
+    branches: [main, dev]
+
+jobs:
+  log-input:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Object Github
+        run: echo "${{toJSON(github)}}"
+
+  test:
+    if: inputs.tags == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Check go version
+        run: go version
+
+      - name: Cache go modules
+        uses: actions/cache/save@v4
+        id: cache
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      
+      - name: Install dependencizes
+        run: make deps
+
+      - name: Run tests
+        run: make test-verbose
+
+  build:
+    if: inputs.tags == true
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Check go version
+        run: go version
+
+      - name: Cache go modules
+        uses: actions/cache/save@v4
+        id: cache
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          
+      - name: Install dependencies
+        run: make deps
+
+      - name: Build the application
+        run: make build
+
+      - name: Run and test application
+        run: |
+          cd bin && ./main &
+          SERVER_PID=$!
+          sleep 3
+          curl -f http://localhost:8080
+          kill $SERVER_PID
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with: 
+          name: binary-file
+          path: bin
+
+  deploy: 
+    if: inputs.tags == true
+    needs: build
+    runs-on: [self-hosted, Linux]
+    steps: 
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4
+        with: 
+          name: binary-file
+          path: bin
+
+  deploy-to-server:
+    if: false  # Ubah ke 'true' untuk mengaktifkan job ini
+    needs: build
+    runs-on: [self-hosted, Linux]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Remove old container if exists
+        run: |
+          docker rm -f first_go_api_prod || true
+
+      - name: Build and Run Production App with Docker Compose
+        run: |
+          echo $(pwd)
+          docker compose -f docker-compose.yml up -d --build app
+          # Tunggu beberapa detik agar service benar-benar up
+          sleep 5
+          curl -f http://localhost:8080
+
+      - name: Deploy Finished Marker
+        run: echo "=== DEPLOYMENT SELESAI ==="
