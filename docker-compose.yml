@@ -10,18 +10,3 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
-
-  # Service untuk lingkungan DEVELOPMENT
-  # Menggunakan 'air' untuk live-reloading
-  dev:
-    build:
-      context: .
-      dockerfile: docker/go.dev.Dockerfile
-    container_name: first_go_api_dev
-    working_dir: /app
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    ports:
-      - "${PORT}:8080"

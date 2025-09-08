@@ -36,6 +36,20 @@ func TestHelloHandler_Hello(t *testing.T) {
 			expectedStatus:  http.StatusOK,
 			expectedMessage: "Hello, World Moncos Lowrider!",
 		},
+		{
+			name:            "successful post body helo request",
+			method:          "POST",
+			path:            "/post-hello",
+			expectedStatus:  http.StatusOK,
+			expectedMessage: "Hello, World Moncos Lowrider!",
+		},
+		{
+			name:            "successful post form data helo request",
+			method:          "POST",
+			path:            "/post-hello-form",
+			expectedStatus:  http.StatusOK,
+			expectedMessage: "Hello, World Moncos Lowrider!",
+		},
 	}
 
 	for _, tt := range tests {

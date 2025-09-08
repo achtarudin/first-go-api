@@ -9,9 +9,15 @@ help:
 	@echo "  test-verbose - Run all tests with verbose output"
 	@echo "  test-cover  - Run tests with coverage report"
 	@echo "  test-bench  - Run benchmark tests"
+
 	@echo "  build       - Build the application"
 	@echo "  run         - Run the application"
 	@echo "  clean       - Clean build artifacts"
+
+	@echo "  migrate         - Run all migrations up"
+	@echo "  migrate-down    - Rollback last migration"
+	@echo "  migrate-status  - Show migration status"
+	@echo "  migrate-create  - Create new migration file (usage: make migrate-create name=your_migration_name)"
 
 # Run all tests
 test:
@@ -60,11 +66,20 @@ ci: test build
 test-handler:
 	go test -v ./handler/...
 
-# Run specific test function
-test-hello:
-	go test -v ./handler/http -run TestHelloHandler
-
 # Format code
 fmt:
 	go fmt ./...
 
+# Migration commands (using goose)
+migrate:
+	goose up
+
+migrate-down:
+	goose down
+
+migrate-status:
+	goose status
+
+# Create migration file
+migrate-create:
+	goose create $(name) sql

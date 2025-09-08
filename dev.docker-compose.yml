@@ -1,0 +1,58 @@
+services:
+  # Service untuk lingkungan DEVELOPMENT
+  # Menggunakan 'air' untuk live-reloading
+  dev:
+    build:
+      context: .
+      dockerfile: docker/go.dev.Dockerfile
+    container_name: first_go_api_dev
+    working_dir: /app
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    ports:
+      - "${PORT}:8080"
+
+  # Service MySQL
+  mysql:
+    image: mariadb:10.6.21
+    container_name: first_go_api_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql:Z
+
+  # Service phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: first_go_api_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: ${DB_PORT}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+
+  # Service Redis
+  redis:
+    image: redis:7.2
+    container_name: first_go_api_redis
+    restart: always
+    ports:
+      - "${CACHE_PORT}:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mariadb_data:
+  redis_data:
