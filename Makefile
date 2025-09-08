@@ -16,6 +16,7 @@ help:
 
 	@echo "  migrate         - Run all migrations up"
 	@echo "  migrate-down    - Rollback last migration"
+	@echo "  migrate-fresh   - Fresh the migration and delete entire data in database"
 	@echo "  migrate-status  - Show migration status"
 	@echo "  migrate-create  - Create new migration file (usage: make migrate-create name=your_migration_name)"
 
@@ -80,6 +81,8 @@ migrate-down:
 migrate-status:
 	goose status
 
-# Create migration file
+migrate-fresh:
+	goose down-to 0 && goose up
+
 migrate-create:
 	goose create $(name) sql

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"cutbray/first_api/infra"
+	"cutbray/first_api/migrations"
 	"cutbray/first_api/repository/model"
 	"testing"
 
@@ -31,12 +32,17 @@ func TestCreate(t *testing.T) {
 
 func TestCreate2(t *testing.T) {
 	viper.AutomaticEnv()
+
 	db, err := infra.NewDatabaseEnv()
-
 	assert.NoError(t, err)
-	assert.NotNil(t, db)
-	repo := NewUserRepository(db.DB)
 
+	sqlDB, err := db.DB.DB()
+	assert.NoError(t, err)
+
+	err = migrations.RefreshMysqlMigrations(sqlDB)
+	assert.NoError(t, err)
+
+	repo := NewUserRepository(db.DB)
 	user := &model.User{Username: "testuser3sd", Email: "testuser2@exampls3e.com", Password: "password"}
 	err = repo.Create(user)
 	assert.NoError(t, err)

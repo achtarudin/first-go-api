@@ -4,7 +4,6 @@ import (
 	"cutbray/first_api/migrations"
 	"fmt"
 
-	"github.com/fatih/color"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
@@ -55,7 +54,6 @@ func NewDatabaseEnv() (*Database, error) {
 		Password: viper.GetString("DB_PASSWORD"),
 		DBName:   viper.GetString("DB_DATABASE"),
 	}
-	// dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		config.User,
@@ -64,7 +62,6 @@ func NewDatabaseEnv() (*Database, error) {
 		config.Port,
 		config.DBName,
 	)
-	color.Green("Connecting to database at %s:%d...", config.Host, config.Port)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
@@ -79,7 +76,7 @@ func NewDatabaseEnv() (*Database, error) {
 
 func NewDatabaseTest() (*Database, error) {
 
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 
@@ -92,7 +89,7 @@ func NewDatabaseTest() (*Database, error) {
 		return nil, fmt.Errorf("Failed to get database instance: %w", err)
 	}
 
-	err = migrations.GetMigrationsFS(sqlDB)
+	err = migrations.RefreshSQLiteMigrations(sqlDB)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to run migrations: %w", err)
 	}
