@@ -2,6 +2,8 @@ package main
 
 import (
 	handler "cutbray/first_api/handler/http"
+	"cutbray/first_api/infra"
+	"cutbray/first_api/repository"
 
 	"github.com/fatih/color"
 	"github.com/gin-contrib/cors"
@@ -17,13 +19,21 @@ func main() {
 	// Read environment variables
 	viper.AutomaticEnv()
 
-	// Set gin mode
+	// Initialize database
+	db, err := infra.NewDatabaseEnv()
+	if err != nil {
+		panic(err)
+	}
+
+	// Initialize repositories
+	repos := repository.NewRepositories(db.DB)
+	_ = repos
+
+	// Initialize Gin router
 	if viper.GetBool("DEBUG") == false {
 		color.Green("Service RUN on production mode")
 		gin.SetMode(gin.ReleaseMode)
 	}
-
-	// Initialize Gin router
 	server := gin.Default()
 	server.Use(cors.Default())
 	server.SetTrustedProxies([]string{"127.0.0.1"})
