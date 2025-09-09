@@ -1,7 +1,7 @@
 package http
 
 import (
-	"cutbray/first_api/handler/response"
+	"cutbray/first_api/utils/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

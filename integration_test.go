@@ -1,13 +1,13 @@
 package main
 
 import (
-	"cutbray/first_api/handler/response"
+	"cutbray/first_api/utils/response"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	handlerHttp "cutbray/first_api/handler/http"
+	hello "cutbray/first_api/domain/hello/handler/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func TestFullIntegration_RealHandler(t *testing.T) {
 	server := gin.Default()
 
 	// Use the real handler from your code
-	handlerHttp.NewHelloHandler(server)
+	hello.NewHelloHandler(server)
 
 	// Test the actual endpoint
 	req, err := http.NewRequest("GET", "/", nil)
@@ -46,7 +46,7 @@ func TestFullIntegration_RealHandler(t *testing.T) {
 func TestFullIntegration_ContentType(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	server := gin.Default()
-	handlerHttp.NewHelloHandler(server)
+	hello.NewHelloHandler(server)
 
 	req, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
@@ -61,7 +61,7 @@ func TestFullIntegration_ContentType(t *testing.T) {
 func TestFullIntegration_ResponseHeaders(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	server := gin.Default()
-	handlerHttp.NewHelloHandler(server)
+	hello.NewHelloHandler(server)
 
 	req, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)

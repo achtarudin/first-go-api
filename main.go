@@ -1,10 +1,13 @@
 package main
 
 import (
-	handler "cutbray/first_api/handler/http"
 	"cutbray/first_api/infra"
-	"cutbray/first_api/repository"
 	"cutbray/first_api/utils"
+
+	swagger "cutbray/first_api/domain/docs/handler/http"
+	hello "cutbray/first_api/domain/hello/handler/http"
+
+	auth "cutbray/first_api/domain/auth/handler/http"
 
 	"github.com/fatih/color"
 	"github.com/gin-contrib/cors"
@@ -21,17 +24,13 @@ func main() {
 	viper.AutomaticEnv()
 
 	// Initialize database
-	db, err := infra.NewDatabaseEnv()
+	_, err := infra.NewDatabaseEnv()
 	if err != nil {
 		panic(err)
 	}
 
 	// Initialize validator
 	validate := utils.NewValidator()
-
-	// Initialize repositories
-	repos := repository.NewRepositories(db.DB)
-	_ = repos
 
 	// Initialize Gin router
 	if viper.GetBool("DEBUG") == false {
@@ -46,9 +45,9 @@ func main() {
 	api := server.Group("/api")
 
 	// Initialize handlers
-	handler.NewAuthHandler(api, validate)
-	handler.NewSwaggerHandler(server, "First Go API", "This is a sample server for the First Go API.")
-	handler.NewHelloHandler(server)
+	hello.NewHelloHandler(server)
+	swagger.NewSwaggerHandler(server, "First GO API", "Documentation for First GO API")
+	auth.NewAuthHandler(api, validate)
 
 	server.Run(":8080")
 }
