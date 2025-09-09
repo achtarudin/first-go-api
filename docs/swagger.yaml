@@ -1,5 +1,5 @@
 definitions:
-  HelloRequest:
+  request.HelloRequest:
     properties:
       age:
         example: 27
@@ -11,7 +11,45 @@ definitions:
         example: John Doe
         type: string
     type: object
-  SuccessResponse:
+  request.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  request.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+      password:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+      password_confirmation:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    - password_confirmation
+    type: object
+  response.SuccessResponse:
     properties:
       data: {}
       message:
@@ -41,7 +79,7 @@ paths:
           description: success response so the data field is array of any type
           schema:
             allOf:
-            - $ref: '#/definitions/SuccessResponse'
+            - $ref: '#/definitions/response.SuccessResponse'
             - properties:
                 data:
                   items: {}
@@ -60,6 +98,80 @@ paths:
       summary: Show a hello message
       tags:
       - Hello
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password
+      parameters:
+      - description: json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      tags:
+      - Auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      tags:
+      - Auth
   /post-hello:
     post:
       consumes:
@@ -71,7 +183,7 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/HelloRequest'
+          $ref: '#/definitions/request.HelloRequest'
       produces:
       - application/json
       responses:
@@ -79,13 +191,11 @@ paths:
           description: success response so the data field is array of any type
           schema:
             allOf:
-            - $ref: '#/definitions/SuccessResponse'
+            - $ref: '#/definitions/response.SuccessResponse'
             - properties:
                 data:
                   items: {}
                   type: array
-                message:
-                  type: string
               type: object
         "201":
           description: Created
@@ -131,7 +241,7 @@ paths:
           description: success response so the data field is array of any type
           schema:
             allOf:
-            - $ref: '#/definitions/SuccessResponse'
+            - $ref: '#/definitions/response.SuccessResponse'
             - properties:
                 data:
                   items: {}

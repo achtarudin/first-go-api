@@ -4,6 +4,7 @@ import (
 	handler "cutbray/first_api/handler/http"
 	"cutbray/first_api/infra"
 	"cutbray/first_api/repository"
+	"cutbray/first_api/utils"
 
 	"github.com/fatih/color"
 	"github.com/gin-contrib/cors"
@@ -11,9 +12,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name Authorization
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
 func main() {
 
 	// Read environment variables
@@ -24,6 +25,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Initialize validator
+	validate := utils.NewValidator()
 
 	// Initialize repositories
 	repos := repository.NewRepositories(db.DB)
@@ -38,7 +42,11 @@ func main() {
 	server.Use(cors.Default())
 	server.SetTrustedProxies([]string{"127.0.0.1"})
 
+	// API Router
+	api := server.Group("/api")
+
 	// Initialize handlers
+	handler.NewAuthHandler(api, validate)
 	handler.NewSwaggerHandler(server, "First Go API", "This is a sample server for the First Go API.")
 	handler.NewHelloHandler(server)
 

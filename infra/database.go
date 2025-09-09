@@ -45,7 +45,7 @@ func NewDatabase(config DatabaseConfig) (*Database, error) {
 	return &Database{DB: db}, nil
 }
 
-// NewDatabase creates a new database connection
+// NewDatabaseEnv creates a new database connection using environment variables
 func NewDatabaseEnv() (*Database, error) {
 	config := DatabaseConfig{
 		Host:     viper.GetString("DB_HOST"),
@@ -74,9 +74,10 @@ func NewDatabaseEnv() (*Database, error) {
 	return &Database{DB: db}, nil
 }
 
+// NewDatabaseTest creates a new in-memory SQLite database for testing
 func NewDatabaseTest() (*Database, error) {
 
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 
@@ -85,14 +86,12 @@ func NewDatabaseTest() (*Database, error) {
 	}
 
 	sqlDB, err := db.DB()
+
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get database instance: %w", err)
 	}
 
-	err = migrations.RefreshSQLiteMigrations(sqlDB)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to run migrations: %w", err)
-	}
+	migrations.RunRefreshMigrations(sqlDB, "sqlite3")
 
 	return &Database{DB: db}, nil
 }

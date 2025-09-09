@@ -27,20 +27,17 @@ func NewHelloHandler(server *gin.Engine) {
 //
 //	@Summary		Show a hello message
 //	@Description	Hello Handler
-//	@Security     	ApiKeyAuth
+//	@Security		ApiKeyAuth
 //	@Tags			Hello
-//
-// @Accept			json
-// @Produce		json
-// @Param        	name    query     string  false  "search by name"
-//
-//	@Success		200 {object} response.SuccessResponse{data=[]any} "success response so the data field is array of any type"
-//
-// @Success		201
-// @Failure		400
-// @Failure		404
-// @Failure		500
-// @Router			/ [get]
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	query		string									false	"search by name"
+//	@Success		200		{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success		201
+//	@Failure		400
+//	@Failure		404
+//	@Failure		500
+//	@Router			/ [get]
 func (h *helloHandler) Hello(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
@@ -55,9 +52,9 @@ func (h *helloHandler) Hello(c *gin.Context) {
 //	@Description	Hello message json body
 //	@Tags			Hello
 //	@Accept			json
-//	@Param			payload		body	request.HelloRequest	true	"json type"
+//	@Param			payload	body	request.HelloRequest	true	"json type"
 //	@Produce		json
-//		@Success		200 {object} response.SuccessResponse{data=[]any} "success response so the data field is array of any type"
+//	@Success		200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success		201
 //	@Failure		400
 //	@Failure		404
@@ -73,21 +70,21 @@ func (h *helloHandler) PostBodyHello(c *gin.Context) {
 
 // PostFormDataHello godoc
 //
-//		@Summary		Post a hello message using form data
-//		@Description	Hello message form data
-//		@Tags			Hello
-//		@Accept			multipart/form-data
-//		@Param			name		formData	string	true	"Name"
-//		@Param			age			formData	int		true	"Age"
-//		@Param			email		formData	string	true	"Email"
-//		@Param			files		formData	file	true	"File to upload"
-//	 	@Produce		json
-//		@Success		200 {object} response.SuccessResponse{data=[]any} "success response so the data field is array of any type"
-//		@Success		201
-//		@Failure		400
-//		@Failure		404
-//		@Failure		500
-//		@Router			/post-hello-form [post]
+//	@Summary		Post a hello message using form data
+//	@Description	Hello message form data
+//	@Tags			Hello
+//	@Accept			multipart/form-data
+//	@Param			name	formData	string	true	"Name"
+//	@Param			age		formData	int		true	"Age"
+//	@Param			email	formData	string	true	"Email"
+//	@Param			files	formData	file	true	"File to upload"
+//	@Produce		json
+//	@Success		200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success		201
+//	@Failure		400
+//	@Failure		404
+//	@Failure		500
+//	@Router			/post-hello-form [post]
 func (h *helloHandler) PostFormDataHello(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
