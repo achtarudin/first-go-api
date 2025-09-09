@@ -7,7 +7,8 @@ CREATE TABLE merchants (
     created_at TIMESTAMP NULL DEFAULT NULL,
     updated_at TIMESTAMP NULL DEFAULT NULL,
     deleted_at TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_merchants_user_id (user_id)
 );
 
 CREATE TABLE couriers (
@@ -19,6 +20,7 @@ CREATE TABLE couriers (
     created_at TIMESTAMP NULL DEFAULT NULL,
     updated_at TIMESTAMP NULL DEFAULT NULL,
     deleted_at TIMESTAMP NULL DEFAULT NULL
+    -- Index belum ditambah, bisa ditambah jika sering dicari berdasarkan phone misal
 );
 
 CREATE TABLE foods (
@@ -30,7 +32,8 @@ CREATE TABLE foods (
     created_at TIMESTAMP NULL DEFAULT NULL,
     updated_at TIMESTAMP NULL DEFAULT NULL,
     deleted_at TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (merchant_id) REFERENCES merchants(id)
+    FOREIGN KEY (merchant_id) REFERENCES merchants(id),
+    INDEX idx_foods_merchant_id (merchant_id)
 );
 
 CREATE TABLE transactions (
@@ -48,7 +51,11 @@ CREATE TABLE transactions (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (merchant_id) REFERENCES merchants(id),
     FOREIGN KEY (courier_id) REFERENCES couriers(id),
-    FOREIGN KEY (food_id) REFERENCES foods(id)
+    FOREIGN KEY (food_id) REFERENCES foods(id),
+    INDEX idx_transactions_user_id (user_id),
+    INDEX idx_transactions_merchant_id (merchant_id),
+    INDEX idx_transactions_courier_id (courier_id),
+    INDEX idx_transactions_food_id (food_id)
 );
 
 -- +goose Down

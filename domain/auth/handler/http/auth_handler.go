@@ -51,11 +51,11 @@ func (h *authHandler) Login(c *gin.Context) {
 		return
 	}
 
-	if err := h.validator.ValidateStruct(json); err != nil {
+	if hasError := h.validator.ValidateStruct(json); hasError != nil {
 		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
 			Status:  http.StatusUnprocessableEntity,
 			Message: "Validation failed",
-			Errors:  err,
+			Errors:  hasError,
 		})
 		return
 	}
@@ -92,14 +92,15 @@ func (h *authHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if err := h.validator.ValidateStruct(json); err != nil {
+	if hasError := h.validator.ValidateStruct(json); hasError != nil {
 		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
 			Status:  http.StatusUnprocessableEntity,
 			Message: "Validation failed",
-			Errors:  err,
+			Errors:  hasError,
 		})
 		return
 	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Hello, Ngopi yuk!",
