@@ -36,7 +36,8 @@ func NewDatabase(config DatabaseConfig) (*Database, error) {
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger:         logger.Default.LogMode(logger.Info),
+		TranslateError: true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
@@ -64,7 +65,8 @@ func NewDatabaseEnv() (*Database, error) {
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger:         logger.Default.LogMode(logger.Info),
+		TranslateError: true,
 	})
 
 	if err != nil {
@@ -78,7 +80,8 @@ func NewDatabaseEnv() (*Database, error) {
 func NewDatabaseTest() (*Database, error) {
 
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
+		Logger:         logger.Default.LogMode(logger.Silent),
+		TranslateError: true,
 	})
 
 	if err != nil {

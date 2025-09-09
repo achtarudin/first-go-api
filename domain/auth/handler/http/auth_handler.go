@@ -2,6 +2,7 @@ package http
 
 import (
 	"cutbray/first_api/domain/auth/handler/request"
+	"cutbray/first_api/domain/auth/usecase"
 	"cutbray/first_api/utils"
 	"cutbray/first_api/utils/response"
 	"net/http"
@@ -11,13 +12,15 @@ import (
 
 type authHandler struct {
 	router    *gin.RouterGroup
+	usecase   usecase.AuthUsecase
 	validator *utils.Validator
 }
 
-func NewAuthHandler(router *gin.RouterGroup, validator *utils.Validator) {
+func NewAuthHandler(router *gin.RouterGroup, usecase usecase.AuthUsecase, validator *utils.Validator) {
 
 	handler := &authHandler{
 		router:    router,
+		usecase:   usecase,
 		validator: validator,
 	}
 
@@ -60,10 +63,25 @@ func (h *authHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Convert to entity and call usecase
+	user := json.ToUserLogin()
+	err := h.usecase.Login(c, &user, utils.VerifyPassword)
+
+	// If error occurs during usecase execution, return error response
+	if err != nil {
+		c.JSON(http.StatusNotFound, response.BindErrorResponse{
+			Status:  http.StatusNotFound,
+			Message: "Not found",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
-		Message: "Hello, Ngopi yuk!",
-		Data:    []any{},
+		Message: "Login success",
+		Data:    user,
 	})
 }
 
@@ -83,6 +101,7 @@ func (h *authHandler) Login(c *gin.Context) {
 //	@Router			/api/auth/register [post]
 func (h *authHandler) Register(c *gin.Context) {
 
+	// Validate input
 	var json request.RegisterRequest
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
@@ -92,6 +111,7 @@ func (h *authHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// Validate struct using validator
 	if hasError := h.validator.ValidateStruct(json); hasError != nil {
 		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
 			Status:  http.StatusUnprocessableEntity,
@@ -101,9 +121,26 @@ func (h *authHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// Convert to entity and call usecase
+	user := json.ToUserRegister()
+	err := h.usecase.Register(c, &user, utils.HashPassword)
+
+	// If error occurs during usecase execution, return error response
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
+			Status:  http.StatusUnprocessableEntity,
+			Message: "Validation failed",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
+
+	// Return success response
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
-		Message: "Hello, Ngopi yuk!",
-		Data:    []any{},
+		Message: "Register success",
+		Data:    user,
 	})
 }

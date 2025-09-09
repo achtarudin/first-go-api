@@ -64,8 +64,8 @@ deps:
 ci: test build
 
 # Run specific test package
-test-handler:
-	go test -v ./handler/...
+test-domain:
+	go test -v ./domain/...
 
 # Format code
 fmt:
