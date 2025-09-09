@@ -34,11 +34,19 @@ func (a *authUsecase) Login(ctx context.Context, user *entity.User, verifyPasswo
 		return errors.New("user not found")
 	}
 
-	if !utils.VerifyPassword(inputPassword, foundUser.Password) {
+	if verifyPassword(inputPassword, foundUser.Password) == false {
 		return errors.New("invalid password")
 	}
 
+	token, err := utils.GenerateToken(user)
+
+	if err != nil {
+		return errors.New("failed to generate token")
+	}
+
+	user.Token = token
 	user.Password = ""
+
 	return nil
 }
 
