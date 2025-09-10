@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"context"
 	"database/sql"
 	"embed"
 
@@ -15,16 +16,25 @@ var embedMigrations embed.FS
  * @Param db *sql.DB - the database connection
  * @Param dialect string - the database dialect (e.g., "mysql", "sqlite3")
  */
-func RunUpMigrations(db *sql.DB, dialect string) error {
+func RunUpMigrations(db *sql.DB, dialect string) (version *int64, err error) {
 	goose.SetBaseFS(embedMigrations)
 
 	if err := goose.SetDialect(dialect); err != nil {
-		return err
+		return nil, err
 	}
-	if err := goose.Up(db, "."); err != nil {
-		return err
+
+	context := context.Background()
+
+	if err := goose.UpContext(context, db, "."); err != nil {
+		return nil, err
 	}
-	return nil
+
+	migrateVersion, err := goose.GetDBVersionContext(context, db)
+	if err != nil {
+		return nil, err
+	}
+
+	return &migrateVersion, nil
 }
 
 /** Documents:
@@ -32,18 +42,28 @@ func RunUpMigrations(db *sql.DB, dialect string) error {
  * @Param db *sql.DB - the database connection
  * @Param dialect string - the database dialect (e.g., "mysql", "sqlite3")
  */
-func RunRefreshMigrations(db *sql.DB, dialect string) error {
+func RunRefreshMigrations(db *sql.DB, dialect string) (version *int64, err error) {
 	goose.SetBaseFS(embedMigrations)
 
 	if err := goose.SetDialect(dialect); err != nil {
-		return err
-	}
-	if err := goose.DownTo(db, ".", 0, goose.WithNoVersioning()); err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := goose.Up(db, "."); err != nil {
-		return err
+	context := context.Background()
+
+	if err := goose.DownToContext(context, db, ".", 0); err != nil {
+		return nil, err
 	}
-	return nil
+
+	if err := goose.UpContext(context, db, "."); err != nil {
+		return nil, err
+	}
+
+	migrateVersion, err := goose.GetDBVersionContext(context, db)
+	if err != nil {
+		return nil, err
+	}
+
+	return &migrateVersion, nil
+
 }

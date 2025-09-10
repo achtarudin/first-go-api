@@ -71,6 +71,10 @@ test-domain:
 test-utils:
 	go test -v -cover ./utils/...
 
+# Run migration test
+test-migrations:
+	go test -v -cover -count=1 ./migrations/...
+
 # Format code
 fmt:
 	go fmt ./...
@@ -81,6 +85,9 @@ migrate:
 
 migrate-down:
 	goose down
+
+migrate-down-all:
+	goose down-to 0
 
 migrate-status:
 	goose status
