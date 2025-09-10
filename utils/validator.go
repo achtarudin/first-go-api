@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"strings"
 
 	id "github.com/go-playground/locales/id"
@@ -29,10 +28,10 @@ func NewValidator() *Validator {
 }
 
 // Validasi dan kembalikan map error tertranslate
-func (v *Validator) ValidateStruct(s interface{}) map[string]string {
+func (v *Validator) ValidateStruct(s interface{}) (errorMap map[string]string, isValid bool) {
 	err := v.validate.Struct(s)
 	if err == nil {
-		return nil
+		return nil, err == nil
 	}
 
 	errs := err.(validator.ValidationErrors)
@@ -42,7 +41,7 @@ func (v *Validator) ValidateStruct(s interface{}) map[string]string {
 		field := strings.ToLower(e.Field())
 		out[field] = e.Translate(v.trans)
 	}
-	return out
+	return out, out == nil
 }
 
 func (v *Validator) ValidateVar(s interface{}, tag string) map[string]string {
@@ -57,6 +56,5 @@ func (v *Validator) ValidateVar(s interface{}, tag string) map[string]string {
 		// Field ke lowercase jika mau
 		out[e.Field()] = e.Translate(v.trans)
 	}
-	fmt.Println(out)
 	return out
 }

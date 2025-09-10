@@ -63,9 +63,13 @@ deps:
 # Run tests and build (CI pipeline)
 ci: test build
 
-# Run specific test package
+# Run specific test domain
 test-domain:
 	go test -v ./domain/...
+
+# Run specific test domain
+test-utils:
+	go test -v -cover ./utils/...
 
 # Format code
 fmt:

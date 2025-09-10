@@ -30,27 +30,40 @@ func VerifyToken(tokenString string) (*jwt.Token, error) {
 		return nil, err
 	}
 
-	// if claims, ok := token.Claims.(jwt.MapClaims); ok {
-	// 	fmt.Println(claims["user_id"], claims["email"])
-	// } else {
-	// 	fmt.Println(err)
-	// }
-
 	return token, nil
 }
 
-func CheckTokenValid(token *jwt.Token) (bool, error) {
+func CheckTokenValid(token *jwt.Token) (isValid bool, userMap map[string]interface{}, err error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 
 	if !ok || !token.Valid {
-		return false, fmt.Errorf("invalid token claims")
+		return false, nil, fmt.Errorf("invalid token claims")
 	}
 
-	// Ambil exp dan iat
-	exp := int64(claims["exp"].(float64))
-	iat := int64(claims["iat"].(float64))
+	expResult, err := claims.GetExpirationTime()
+	if err != nil {
+		return false, nil, fmt.Errorf("invalid exp token claims")
+	}
 
+	iatResult, err := claims.GetIssuedAt()
+	if err != nil {
+		return false, nil, fmt.Errorf("invalid iat token claims")
+	}
+
+	// Ambil user_id dan email dari claims
+	userData := map[string]interface{}{}
+
+	if val, ok := claims["user_id"]; ok {
+		userData["user_id"] = val
+	}
+
+	if val, ok := claims["email"]; ok {
+		userData["email"] = val
+	}
+
+	exp := expResult.Unix()
+	iat := iatResult.Unix()
 	now := time.Now().Unix()
 
-	return exp > now && iat < now, nil
+	return exp > now && iat <= now, userData, nil
 }

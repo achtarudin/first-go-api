@@ -56,11 +56,11 @@ func (h *authHandler) Login(c *gin.Context) {
 		return
 	}
 
-	if hasError := h.validator.ValidateStruct(json); hasError != nil {
+	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
 		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
 			Status:  http.StatusUnprocessableEntity,
 			Message: "Validation failed",
-			Errors:  hasError,
+			Errors:  errorMessage,
 		})
 		return
 	}
@@ -114,11 +114,11 @@ func (h *authHandler) Register(c *gin.Context) {
 	}
 
 	// Validate struct using validator
-	if hasError := h.validator.ValidateStruct(json); hasError != nil {
+	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
 		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
 			Status:  http.StatusUnprocessableEntity,
 			Message: "Validation failed",
-			Errors:  hasError,
+			Errors:  errorMessage,
 		})
 		return
 	}
