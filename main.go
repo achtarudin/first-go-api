@@ -22,11 +22,20 @@ import (
 // @name						Authorization
 func main() {
 
-	// Read environment variables
-	viper.AutomaticEnv()
+	// Load configuration
+	configViper, err := loadConfig()
+	if err != nil {
+		panic(err)
+	}
 
 	// Initialize database
-	db, err := infra.NewDatabaseEnv()
+	db, err := infra.NewDatabase(infra.DatabaseConfig{
+		Host:     configViper.GetString("DB_HOST"),
+		Port:     configViper.GetInt("DB_PORT"),
+		User:     configViper.GetString("DB_USER"),
+		Password: configViper.GetString("DB_PASSWORD"),
+		DBName:   configViper.GetString("DB_DATABASE"),
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +48,7 @@ func main() {
 	usecaseAuth := usecaseAuth.NewAuthUsecase(repoAuth)
 
 	// Initialize Gin router
-	if viper.GetBool("DEBUG") == false {
+	if configViper.GetBool("DEBUG") == false {
 		color.Green("Service RUN on production mode")
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -57,4 +66,20 @@ func main() {
 	auth.NewAuthHandler(api, usecaseAuth, validate)
 
 	server.Run(":8080")
+}
+
+func loadConfig() (*viper.Viper, error) {
+	config := infra.NewAppConfig()
+
+	err := config.LoadEnvConfig(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = config.LoadTranslationConfig(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return config.GetViper(), nil
 }

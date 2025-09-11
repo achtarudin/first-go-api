@@ -13,22 +13,42 @@ import (
 
 type MigrationTestSuite struct {
 	suite.Suite
-	db *infra.Database
+	db     *infra.Database
+	config *viper.Viper
 }
 
 func (suite *MigrationTestSuite) SetupSuite() {
 
-	viper.AutomaticEnv()
+	filename := "../.test.env"
+	config := infra.NewAppConfig()
 
-	viper.Set("DB_DATABASE", "first_go_api_test")
-	viper.Set("DB_USER", "root")
+	// Load .test.env config
+	err := config.LoadEnvConfig(&filename)
+	assert.NoError(suite.T(), err)
 
-	db, err := infra.NewDatabaseEnv()
+	// Set viper
+	suite.config = config.GetViper()
+	assert.NotNil(suite.T(), suite.config)
+
+	// Config database
+	db, err := infra.NewDatabase(infra.DatabaseConfig{
+		Host:     suite.config.GetString("DB_HOST"),
+		Port:     suite.config.GetInt("DB_PORT"),
+		User:     suite.config.GetString("DB_USER"),
+		Password: suite.config.GetString("DB_PASSWORD"),
+		DBName:   suite.config.GetString("DB_DATABASE"),
+	})
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), db)
 
 	suite.db = db
 	assert.NotNil(suite.T(), suite.db)
+}
+
+func (suite *MigrationTestSuite) TearDownSuite() {
+	err := suite.db.Close()
+	assert.NoError(suite.T(), err)
+	fmt.Println("Database connection closed.")
 }
 
 func (suite *MigrationTestSuite) TestRunUpMigrations() {
@@ -38,20 +58,20 @@ func (suite *MigrationTestSuite) TestRunUpMigrations() {
 	assert.NotNil(suite.T(), db)
 
 	// run up migrations
-	versi1, err := migrations.RunUpMigrations(db, viper.GetString("DB_DRIVER"))
+	versi1, err := migrations.RunUpMigrations(db, suite.config.GetString("DB_DRIVER"))
 
 	var totalTables1 int64
-	suite.db.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ?", viper.GetString("DB_DATABASE")).Scan(&totalTables1)
+	suite.db.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ?", suite.config.GetString("DB_DATABASE")).Scan(&totalTables1)
 	fmt.Printf("Total totalTables1 di database: %d, version: %v\n", totalTables1, *versi1)
 
 	assert.NoError(suite.T(), err)
 	assert.True(suite.T(), *versi1 != 0)
 
 	// run refresh the migrations
-	versi2, err := migrations.RunRefreshMigrations(db, viper.GetString("DB_DRIVER"))
+	versi2, err := migrations.RunRefreshMigrations(db, suite.config.GetString("DB_DRIVER"))
 
 	var totalTables2 int64
-	suite.db.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ?", viper.GetString("DB_DATABASE")).Scan(&totalTables2)
+	suite.db.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ?", suite.config.GetString("DB_DATABASE")).Scan(&totalTables2)
 	fmt.Printf("Total totalTables2 di database: %d, version: %v\n", totalTables2, *versi2)
 
 	assert.NoError(suite.T(), err)

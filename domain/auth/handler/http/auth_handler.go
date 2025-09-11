@@ -1,7 +1,6 @@
 package http
 
 import (
-	"cutbray/first_api/domain/auth/handler/middleware"
 	"cutbray/first_api/domain/auth/handler/request"
 	"cutbray/first_api/domain/auth/usecase"
 	"cutbray/first_api/utils"
@@ -25,9 +24,8 @@ func NewAuthHandler(router *gin.RouterGroup, usecase usecase.AuthUsecase, valida
 		validator: validator,
 	}
 
-	routeMiddleware := router.Use(middleware.JWTAuth())
-	routeMiddleware.POST("/auth/login", handler.Login)
-	routeMiddleware.POST("/auth/register", handler.Register)
+	router.POST("/auth/login", handler.Login)
+	router.POST("/auth/register", handler.Register)
 
 }
 
@@ -80,6 +78,7 @@ func (h *authHandler) Login(c *gin.Context) {
 		})
 		return
 	}
+	// Return success response
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Login success",

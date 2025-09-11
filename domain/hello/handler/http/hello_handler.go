@@ -1,6 +1,8 @@
 package http
 
 import (
+	"cutbray/first_api/domain/auth/entity"
+	"cutbray/first_api/domain/share/middleware"
 	"cutbray/first_api/utils/response"
 	"net/http"
 
@@ -17,7 +19,7 @@ func NewHelloHandler(server *gin.Engine) {
 		server: server,
 	}
 
-	server.GET("/", handler.Hello)
+	server.GET("/", middleware.JWTAuth(), handler.Hello)
 	server.POST("/post-hello", handler.PostBodyHello)
 	server.POST("/post-hello-form", handler.PostFormDataHello)
 
@@ -39,10 +41,14 @@ func NewHelloHandler(server *gin.Engine) {
 //	@Failure		500
 //	@Router			/ [get]
 func (h *helloHandler) Hello(c *gin.Context) {
+
+	userId, _ := c.Get("user_id")
+	email, _ := c.Get("email")
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Hello, Ngopi yuk!",
-		Data:    []any{},
+		Data:    entity.User{ID: int(userId.(float64)), Email: email.(string)},
 	})
 }
 
