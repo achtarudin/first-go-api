@@ -62,11 +62,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Install make, curl, and tar
+      - name: Install make, curl,tar dan  mysql-client
         run: |
-          apk add --no-cache make curl tar
+          apk add --no-cache make curl tar mysql-client
           go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
 
+      - name: Initialize Database
+        run: |
+          echo "Database service is ready. Initializing database..."
+          # Jalankan skrip init.sh secara manual
+          # Perhatikan penggunaan '<' untuk mengalirkan isi file ke perintah mysql
+          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" < ./docker/mysql/init.sh
+          echo "Database initialized successfully."
+          
       - name: Cache go modules
         uses: actions/cache@v4
         id: cache
