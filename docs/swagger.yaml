@@ -66,7 +66,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Hello Handler
+      description: Show a hello message
       parameters:
       - description: search by name
         in: query
@@ -95,7 +95,6 @@ paths:
           description: Internal Server Error
       security:
       - ApiKeyAuth: []
-      summary: Show a hello message
       tags:
       - Hello
   /api/auth/login:
@@ -172,11 +171,39 @@ paths:
           description: Internal Server Error
       tags:
       - Auth
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check the health of the application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      tags:
+      - Hello
   /post-hello:
     post:
       consumes:
       - application/json
-      description: Hello message json body
+      description: Post a hello message using json body
       parameters:
       - description: json type
         in: body
@@ -205,14 +232,13 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
-      summary: Post a hello message using json body
       tags:
       - Hello
   /post-hello-form:
     post:
       consumes:
       - multipart/form-data
-      description: Hello message form data
+      description: Post a hello message using form data
       parameters:
       - description: Name
         in: formData
@@ -255,7 +281,6 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
-      summary: Post a hello message using form data
       tags:
       - Hello
 securityDefinitions:

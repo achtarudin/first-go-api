@@ -22,7 +22,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Hello Handler",
+                "description": "Show a hello message",
                 "consumes": [
                     "application/json"
                 ],
@@ -32,7 +32,6 @@ const docTemplate = `{
                 "tags": [
                     "Hello"
                 ],
-                "summary": "Show a hello message",
                 "parameters": [
                     {
                         "type": "string",
@@ -198,9 +197,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/post-hello": {
-            "post": {
-                "description": "Hello message json body",
+        "/health": {
+            "get": {
+                "description": "Check the health of the application",
                 "consumes": [
                     "application/json"
                 ],
@@ -210,7 +209,53 @@ const docTemplate = `{
                 "tags": [
                     "Hello"
                 ],
-                "summary": "Post a hello message using json body",
+                "responses": {
+                    "200": {
+                        "description": "success response so the data field is array of any type",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/post-hello": {
+            "post": {
+                "description": "Post a hello message using json body",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hello"
+                ],
                 "parameters": [
                     {
                         "description": "json type",
@@ -259,7 +304,7 @@ const docTemplate = `{
         },
         "/post-hello-form": {
             "post": {
-                "description": "Hello message form data",
+                "description": "Post a hello message using form data",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -269,7 +314,6 @@ const docTemplate = `{
                 "tags": [
                     "Hello"
                 ],
-                "summary": "Post a hello message using form data",
                 "parameters": [
                     {
                         "type": "string",

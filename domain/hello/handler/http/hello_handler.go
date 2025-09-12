@@ -23,14 +23,15 @@ func NewHelloHandler(server *gin.Engine, middleware *gin.HandlerFunc) *helloHand
 
 func (h *helloHandler) RegisterRoute() {
 	h.server.GET("/", *h.middleware, h.Hello)
+	h.server.GET("/health", h.Health)
+
 	h.server.POST("/post-hello", h.PostBodyHello)
 	h.server.POST("/post-hello-form", h.PostFormDataHello)
 }
 
 // Hello godoc
 //
-//	@Summary		Show a hello message
-//	@Description	Hello Handler
+//	@Description	Show a hello message
 //	@Security		ApiKeyAuth
 //	@Tags			Hello
 //	@Accept			json
@@ -54,10 +55,29 @@ func (h *helloHandler) Hello(c *gin.Context) {
 	})
 }
 
+// Health godoc
+//
+//	@Description	Check the health of the application
+//	@Tags			Hello
+//	@Accept			json
+//	@Produce		json
+//	@Success		200		{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success		201
+//	@Failure		400
+//	@Failure		404
+//	@Failure		500
+//	@Router			/health [get]
+func (h *helloHandler) Health(c *gin.Context) {
+
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "The application is healthy",
+	})
+}
+
 // PostBodyHello godoc
 //
-//	@Summary		Post a hello message using json body
-//	@Description	Hello message json body
+//	@Description	Post a hello message using json body
 //	@Tags			Hello
 //	@Accept			json
 //	@Param			payload	body	request.HelloRequest	true	"json type"
@@ -78,8 +98,7 @@ func (h *helloHandler) PostBodyHello(c *gin.Context) {
 
 // PostFormDataHello godoc
 //
-//	@Summary		Post a hello message using form data
-//	@Description	Hello message form data
+//	@Description	Post a hello message using form data
 //	@Tags			Hello
 //	@Accept			multipart/form-data
 //	@Param			name	formData	string	true	"Name"
