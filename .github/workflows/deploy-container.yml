@@ -66,7 +66,6 @@ jobs:
       - name: Install make, curl, and tar
         run: |
           apk add --no-cache make curl tar
-          go install github.com/air-verse/air@v1.62.0
           go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
 
       - name: Cache go modules
@@ -76,20 +75,9 @@ jobs:
           path: |
             $HOME/.cache/go-build
             /go/pkg/mod
-          # Kunci ini akan cocok jika go.sum tidak berubah
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          # Jika tidak cocok persis, coba pulihkan dari cache terdekat
           restore-keys: |
             ${{ runner.os }}-go-
-            
-      # - name: Cache go modules
-      #   uses: actions/cache/save@v4
-      #   id: cache
-      #   with:
-      #     path: |
-      #       $HOME/.cache/go-build
-      #       /go/pkg/mod
-      #     key: go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
 
       - name: Install dependencies
         run: make deps
@@ -107,7 +95,7 @@ jobs:
           echo "Waiting for server to start..."
           # Gunakan loop yang lebih andal daripada 'sleep'
           for i in {1..10}; do
-            curl -s -f http://localhost:8080 && exit 0
+            curl -s -f http://localhost:8080/health && exit 0
             sleep 1
           done
           echo "Server did not start in time."
