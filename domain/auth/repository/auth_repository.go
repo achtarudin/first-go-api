@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"cutbray/first_api/domain/auth/entity"
-	"cutbray/first_api/model"
+	"cutbray/first_api/pkg/model"
 	"errors"
 
 	"gorm.io/gorm"

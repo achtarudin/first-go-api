@@ -2,7 +2,7 @@ package migration_test
 
 import (
 	"cutbray/first_api/infra"
-	migration "cutbray/first_api/migration"
+	migration "cutbray/first_api/pkg/migration"
 	"fmt"
 	"testing"
 
