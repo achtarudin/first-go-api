@@ -4,7 +4,6 @@ import (
 	"cutbray/first_api/infra"
 	"cutbray/first_api/pkg/middleware"
 	"cutbray/first_api/pkg/utils"
-	"fmt"
 
 	swagger "cutbray/first_api/domain/docs/handler/http"
 	hello "cutbray/first_api/domain/hello/handler/http"
@@ -30,7 +29,6 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(configViper.GetString("DB_HOST"))
 	// Initialize database
 	db, err := infra.NewDatabase(infra.DatabaseConfig{
 		Host:     configViper.GetString("DB_HOST"),
@@ -97,10 +95,10 @@ func loadConfig() (*viper.Viper, error) {
 		return nil, err
 	}
 
-	err = config.LoadTranslationConfig(nil)
-	if err != nil {
-		return nil, err
-	}
+	// err = config.LoadTranslationConfig(nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return config.GetViper(), nil
 }
