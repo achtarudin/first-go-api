@@ -92,7 +92,6 @@ jobs:
       #     key: go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
 
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
         run: make deps
 
       - name: Run tests

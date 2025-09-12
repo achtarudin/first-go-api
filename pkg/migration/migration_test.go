@@ -37,7 +37,7 @@ func (suite *MigrationTestSuite) SetupSuite() {
 	db, err := infra.NewDatabase(infra.DatabaseConfig{
 		Host:     suite.config.GetString("DB_HOST"),
 		Port:     suite.config.GetInt("DB_PORT"),
-		User:     suite.config.GetString("DB_USER"),
+		User:     "root",
 		Password: suite.config.GetString("DB_PASSWORD"),
 		DBName:   suite.config.GetString("DB_DATABASE_TESTING"),
 	})
