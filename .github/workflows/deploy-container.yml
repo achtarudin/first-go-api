@@ -38,14 +38,15 @@ jobs:
       mysql:
         image: mariadb:10.6.21
         env:
-          MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-          MYSQL_DATABASE: ${DB_DATABASE}
-          MYSQL_USER: ${DB_USER}
-          MYSQL_PASSWORD: ${DB_PASSWORD}
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ env.DB_DATABASE }}
+          MYSQL_USER: ${{ env.DB_USER }}
+          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
         ports:
           - "3306:3306"
         volumes:
           - ./docker/mysql:/docker-entrypoint-initdb.d
+    
     steps:
       - name: Log go version
         run: go version
