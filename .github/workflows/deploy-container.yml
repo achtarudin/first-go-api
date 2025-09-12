@@ -165,7 +165,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Create .prod.env file from secrets
-        run: echo "${{ secrets.PROD_ENV }}" > .prod.env
+        run: echo '${{ secrets.PROD_ENV }}' > .prod.env
 
       - name: Remove old container if exists
         run: |
