@@ -53,6 +53,9 @@ jobs:
       - name: Install make, curl, and tar
         run: |
           apk add --no-cache make curl tar
+          go install github.com/air-verse/air@v1.62.0
+          go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
+          export PATH=$PATH:/root/go/bin
 
       - name: Checkout code
         uses: actions/checkout@v5
