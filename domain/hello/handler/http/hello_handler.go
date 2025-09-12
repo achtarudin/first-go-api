@@ -3,7 +3,7 @@ package http
 import (
 	"cutbray/first_api/domain/auth/entity"
 	"cutbray/first_api/domain/share/middleware"
-	"cutbray/first_api/utils/response"
+	"cutbray/first_api/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

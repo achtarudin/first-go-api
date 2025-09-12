@@ -1,7 +1,7 @@
 package http
 
 import (
-	"cutbray/first_api/utils/response"
+	"cutbray/first_api/pkg/response"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"

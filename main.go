@@ -2,7 +2,7 @@ package main
 
 import (
 	"cutbray/first_api/infra"
-	"cutbray/first_api/utils"
+	utils "cutbray/first_api/pkg"
 
 	swagger "cutbray/first_api/domain/docs/handler/http"
 	hello "cutbray/first_api/domain/hello/handler/http"
