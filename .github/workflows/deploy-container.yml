@@ -6,31 +6,31 @@ on:
     branches:
       - main
       - dev
-env:
-  DEBUG: true
-  PORT: 8080
 
-  DB_DRIVER: "mysql"
-  DB_HOST: "mysql"
-  DB_PORT: 3306
-  DB_DATABASE: "first_go_api_db"
-  DB_DATABASE_TESTING: "first_go_api_db_test"
-  DB_USER: "encang-cutbray"
-  DB_PASSWORD: "secret214"
-  DB_ROOT_PASSWORD: "secret214"
-
-  CACHE_DRIVER: "redis"
-  CACHE_PORT: "6379"
-  CACHE_USER: 
-  CACHE_PASSWORD: 
-
-  GOOSE_DRIVER: "mysql"
-  GOOSE_DBSTRING: "root:secret214@tcp(mysql:3306)/first_go_api_db"
-  GOOSE_MIGRATION_DIR: "./pkg/migration"
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DEBUG: true
+      PORT: 8080
 
+      DB_DRIVER: "mysql"
+      DB_HOST: "mysql"
+      DB_PORT: 3306
+      DB_DATABASE: "first_go_api_db"
+      DB_DATABASE_TESTING: "first_go_api_db_test"
+      DB_USER: "encang-cutbray"
+      DB_PASSWORD: "secret214"
+      DB_ROOT_PASSWORD: "secret214"
+
+      CACHE_DRIVER: "redis"
+      CACHE_PORT: "6379"
+      CACHE_USER: 
+      CACHE_PASSWORD: 
+
+      GOOSE_DRIVER: "mysql"
+      GOOSE_DBSTRING: "root:secret214@tcp(mysql:3306)/first_go_api_db"
+      GOOSE_MIGRATION_DIR: "./pkg/migration"
     container:
       image: golang:1.24-alpine
       env:
@@ -165,7 +165,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Create .prod.env file from secrets
-        run: echo '${{ secrets.PROD_ENV }}' > .prod.env
+        run: echo "${{ secrets.PROD_ENV }}" > .prod.env
 
       - name: Remove old container if exists
         run: |
