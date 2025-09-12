@@ -73,7 +73,7 @@ jobs:
           apk add --no-cache mariadb-client
           
           # Tambahkan flag --ssl-mode=DISABLED di sini
-          mariadb -h mysql -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" --skip_ssl < ./docker/mysql/init.sh
+          mariadb -h mysql -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" --skip_ssl < ./docker/mysql/init.sql
           
           echo "Database initialized successfully."
 
