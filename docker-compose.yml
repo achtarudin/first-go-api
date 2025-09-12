@@ -8,5 +8,7 @@ services:
     image: first-go-api:latest
     container_name: first_go_api_prod
     restart: unless-stopped
+    env_file:
+      - .prod.env
     ports:
-      - "8080:8080"
+      - "8085:8080"
