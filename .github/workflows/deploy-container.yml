@@ -6,12 +6,46 @@ on:
     branches:
       - main
       - dev
+env:
+  DEBUG: true
+  PORT: 8080
 
+  DB_DRIVER: "mysql"
+  DB_HOST: "mysql"
+  DB_PORT: 3306
+  DB_DATABASE: "first_go_api_db"
+  DB_DATABASE_TESTING: "first_go_api_db_test"
+  DB_USER: "encang-cutbray"
+  DB_PASSWORD: "secret214"
+  DB_ROOT_PASSWORD: "secret214"
+
+  CACHE_DRIVER: "redis"
+  CACHE_PORT: "6379"
+  CACHE_USER: 
+  CACHE_PASSWORD: 
+
+  GOOSE_DRIVER: "mysql"
+  GOOSE_DBSTRING: "root:secret214@tcp(mysql:3306)/first_go_api_db"
+  GOOSE_MIGRATION_DIR: "./pkg/migration"
 jobs:
   test:
     runs-on: ubuntu-latest
+
     container:
       image: golang:1.24-alpine
+
+    services:
+      mysql:
+        image: mariadb:10.6.21
+        env:
+          MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+          MYSQL_DATABASE: ${DB_DATABASE}
+          MYSQL_USER: ${DB_USER}
+          MYSQL_PASSWORD: ${DB_PASSWORD}
+        ports:
+          - "3306:3306"
+        volumes:
+          - ./docker/mysql:/docker-entrypoint-initdb.d
     steps:
       - name: Log go version
         run: go version
@@ -51,13 +85,15 @@ jobs:
           kill $SERVER_PID
 
       - name: Output Step
-        run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}} 
+        run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}}
 
   build:
     needs: test
     runs-on: ubuntu-latest
+
     container:
       image: golang:1.24-alpine
+
     steps:
       - name: Log go version
         run: go version
@@ -94,11 +130,11 @@ jobs:
           name: binary-file
           path: bin
 
-  deploy: 
+  deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: [self-hosted, Linux]
-    steps: 
+    steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -110,14 +146,13 @@ jobs:
         run: |
           echo $(pwd)
           docker compose -f docker-compose.yml up -d --build app
-      
+
       - name: Deploy Finished Marker
         run: echo "=== DEPLOYMENT SELESAI ==="
-      
 
       # - name: Get build artifacts
       #   uses: actions/download-artifact@v4
-      #   with: 
+      #   with:
       #     name: binary-file
       #     path: bin
 
