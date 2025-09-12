@@ -4,7 +4,7 @@ import (
 	"context"
 	"cutbray/first_api/domain/auth/entity"
 	"cutbray/first_api/domain/auth/repository"
-	utils "cutbray/first_api/pkg"
+	"cutbray/first_api/pkg/utils"
 	"errors"
 )
 

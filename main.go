@@ -2,7 +2,7 @@ package main
 
 import (
 	"cutbray/first_api/infra"
-	utils "cutbray/first_api/pkg"
+	"cutbray/first_api/pkg/utils"
 
 	swagger "cutbray/first_api/domain/docs/handler/http"
 	hello "cutbray/first_api/domain/hello/handler/http"
@@ -43,10 +43,6 @@ func main() {
 	// Initialize validator
 	validate := utils.NewValidator()
 
-	// Initialize repositories and usecases
-	repoAuth := repoAuth.NewAuthRepository(db.DB)
-	usecaseAuth := usecaseAuth.NewAuthUsecase(repoAuth)
-
 	// Initialize Gin router
 	if configViper.GetBool("DEBUG") == false {
 		color.Green("Service RUN on production mode")
@@ -57,13 +53,30 @@ func main() {
 	server.Use(cors.Default())
 	server.SetTrustedProxies([]string{"127.0.0.1"})
 
-	// API Router
-	api := server.Group("/api")
+	// Initialize hello
+	{
+		helloHandler := hello.NewHelloHandler(server)
+		helloHandler.RegisterRoute()
+	}
 
-	// Initialize handlers
-	hello.NewHelloHandler(server)
-	swagger.NewSwaggerHandler(server, "First GO API", "Documentation for First GO API")
-	auth.NewAuthHandler(api, usecaseAuth, validate)
+	// initialize swagger
+	{
+		swaggerHadler := swagger.NewSwaggerHandler(server, "First GO API", "Documentation for First GO API")
+		swaggerHadler.RegisterRoute()
+
+	}
+
+	// API Router
+	{
+		api := server.Group("/api")
+		{
+			// initialize auth
+			repoAuth := repoAuth.NewAuthRepository(db.DB)
+			usecaseAuth := usecaseAuth.NewAuthUsecase(repoAuth)
+			authHandler := auth.NewAuthHandler(api, usecaseAuth, validate)
+			authHandler.RegisterRoute()
+		}
+	}
 
 	server.Run(":8080")
 }

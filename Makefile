@@ -67,13 +67,13 @@ ci: test build
 test-domain:
 	go test -v ./domain/...
 
-# Run specific test domain
-test-utils:
-	go test -v -cover ./utils/...
+# Run specific test pkg
+test-pkg:
+	go test -v -cover ./pkg/...
 
 # Run migration test
 test-migrations:
-	go test -v -cover -count=1 ./migrations/...
+	go test -v -cover -count=1 ./pkg/migrations/...
 
 # Format code
 fmt:

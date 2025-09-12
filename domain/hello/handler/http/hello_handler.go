@@ -13,16 +13,17 @@ type helloHandler struct {
 	server *gin.Engine
 }
 
-func NewHelloHandler(server *gin.Engine) {
+func NewHelloHandler(server *gin.Engine) *helloHandler {
 
-	handler := &helloHandler{
+	return &helloHandler{
 		server: server,
 	}
+}
 
-	server.GET("/", middleware.JWTAuth(), handler.Hello)
-	server.POST("/post-hello", handler.PostBodyHello)
-	server.POST("/post-hello-form", handler.PostFormDataHello)
-
+func (h *helloHandler) RegisterRoute() {
+	h.server.GET("/", middleware.JWTAuth(), h.Hello)
+	h.server.POST("/post-hello", h.PostBodyHello)
+	h.server.POST("/post-hello-form", h.PostFormDataHello)
 }
 
 // Hello godoc

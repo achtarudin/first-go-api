@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	utils "cutbray/first_api/pkg"
 	"cutbray/first_api/pkg/response"
+	"cutbray/first_api/pkg/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

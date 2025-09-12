@@ -3,8 +3,8 @@ package http
 import (
 	"cutbray/first_api/domain/auth/handler/request"
 	"cutbray/first_api/domain/auth/usecase"
-	utils "cutbray/first_api/pkg"
 	"cutbray/first_api/pkg/response"
+	"cutbray/first_api/pkg/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,17 +16,17 @@ type authHandler struct {
 	validator *utils.Validator
 }
 
-func NewAuthHandler(router *gin.RouterGroup, usecase usecase.AuthUsecase, validator *utils.Validator) {
-
-	handler := &authHandler{
+func NewAuthHandler(router *gin.RouterGroup, usecase usecase.AuthUsecase, validator *utils.Validator) *authHandler {
+	return &authHandler{
 		router:    router,
 		usecase:   usecase,
 		validator: validator,
 	}
+}
 
-	router.POST("/auth/login", handler.Login)
-	router.POST("/auth/register", handler.Register)
-
+func (h *authHandler) RegisterRoute() {
+	h.router.POST("/auth/login", h.Login)
+	h.router.POST("/auth/register", h.Register)
 }
 
 // Login godoc
