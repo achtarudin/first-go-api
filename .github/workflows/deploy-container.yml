@@ -62,18 +62,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Install make, curl,tar dan  mysql-client
+      - name: Install make, curl,tar
         run: |
-          apk add --no-cache make curl tar mysql-client
+          apk add --no-cache make curl tar
           go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
 
       - name: Initialize Database
         run: |
           echo "Database service is ready. Initializing database..."
-          apk add --no-cache mysql-client
+          apk add --no-cache mariadb-client
           
           # Tambahkan flag --ssl-mode=DISABLED di sini
-          mysql -h mysql -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" --ssl-mode=DISABLED < ./docker/mysql/init.sh
+          mariadb -h mysql -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" --ssl-mode=DISABLED < ./docker/mysql/init.sh
           
           echo "Database initialized successfully."
 
