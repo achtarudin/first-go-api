@@ -164,6 +164,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Create .prod.env file from secrets
+        run: echo "${{ secrets.PROD_ENV }}" > .prod.env
+
       - name: Remove old container if exists
         run: |
           docker rm -f first_go_api_prod || true
