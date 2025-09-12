@@ -19,7 +19,7 @@ type MigrationTestSuite struct {
 
 func (suite *MigrationTestSuite) SetupSuite() {
 
-	filename := "../.test.env"
+	filename := "../../.test.env"
 	config := infra.NewAppConfig()
 
 	// Load .test.env config

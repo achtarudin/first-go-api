@@ -2,7 +2,6 @@ package http
 
 import (
 	"cutbray/first_api/domain/auth/entity"
-	"cutbray/first_api/pkg/middleware"
 	"cutbray/first_api/pkg/response"
 	"net/http"
 
@@ -10,18 +9,20 @@ import (
 )
 
 type helloHandler struct {
-	server *gin.Engine
+	server     *gin.Engine
+	middleware *gin.HandlerFunc
 }
 
-func NewHelloHandler(server *gin.Engine) *helloHandler {
+func NewHelloHandler(server *gin.Engine, middleware *gin.HandlerFunc) *helloHandler {
 
 	return &helloHandler{
-		server: server,
+		server:     server,
+		middleware: middleware,
 	}
 }
 
 func (h *helloHandler) RegisterRoute() {
-	h.server.GET("/", middleware.JWTAuth(), h.Hello)
+	h.server.GET("/", *h.middleware, h.Hello)
 	h.server.POST("/post-hello", h.PostBodyHello)
 	h.server.POST("/post-hello-form", h.PostFormDataHello)
 }

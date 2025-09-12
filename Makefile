@@ -65,7 +65,7 @@ ci: test build
 
 # Run specific test domain
 test-domain:
-	go test -v ./domain/...
+	go test -v -cover ./domain/${name}...
 
 # Run specific test pkg
 test-pkg:

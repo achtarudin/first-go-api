@@ -2,6 +2,7 @@ package main
 
 import (
 	"cutbray/first_api/infra"
+	"cutbray/first_api/pkg/middleware"
 	"cutbray/first_api/pkg/utils"
 
 	swagger "cutbray/first_api/domain/docs/handler/http"
@@ -53,9 +54,21 @@ func main() {
 	server.Use(cors.Default())
 	server.SetTrustedProxies([]string{"127.0.0.1"})
 
+	// Initialize Repository
+	repoAuth := repoAuth.NewAuthRepository(db.DB)
+
+	// Initialize Usecase
+	usecaseAuth := usecaseAuth.NewAuthUsecase(repoAuth)
+
+	// Initialize Middleware
+	authMiddleware := middleware.JWTAuth()
+
+	// Initialize API group
+	api := server.Group("/api")
+
 	// Initialize hello
 	{
-		helloHandler := hello.NewHelloHandler(server)
+		helloHandler := hello.NewHelloHandler(server, &authMiddleware)
 		helloHandler.RegisterRoute()
 	}
 
@@ -66,16 +79,10 @@ func main() {
 
 	}
 
-	// API Router
 	{
-		api := server.Group("/api")
-		{
-			// initialize auth
-			repoAuth := repoAuth.NewAuthRepository(db.DB)
-			usecaseAuth := usecaseAuth.NewAuthUsecase(repoAuth)
-			authHandler := auth.NewAuthHandler(api, usecaseAuth, validate)
-			authHandler.RegisterRoute()
-		}
+		// initialize auth
+		authHandler := auth.NewAuthHandler(api, usecaseAuth, validate)
+		authHandler.RegisterRoute()
 	}
 
 	server.Run(":8080")

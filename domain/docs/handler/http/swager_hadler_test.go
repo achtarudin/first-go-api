@@ -19,6 +19,8 @@ func TestNewSwaggerHandler(t *testing.T) {
 	// Initialize the Swagger handler
 	handler := NewSwaggerHandler(server, "Test API", "Test API description")
 
+	handler.RegisterRoute()
+
 	// Check struct is not nil
 	assert.NotNil(t, handler)
 	assert.Equal(t, server, handler.server)
@@ -38,7 +40,9 @@ func TestNewSwaggerHandler(t *testing.T) {
 func TestSwaggerHandlerRouteRegistered(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	server := gin.New()
-	NewSwaggerHandler(server, "Title", "Desc")
+	handler := NewSwaggerHandler(server, "Title", "Desc")
+
+	handler.RegisterRoute()
 
 	// Test with /swagger/doc.json (the spec endpoint)
 	req, err := http.NewRequest("GET", "/swagger/doc.json", nil)

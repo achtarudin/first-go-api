@@ -4,22 +4,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/gin-gonic/gin"
 )
 
 func BenchmarkHelloHandler(b *testing.B) {
-	// Set gin to test mode
-	gin.SetMode(gin.TestMode)
+	server, _ := setupTestServer()
+	tokenString, _ := setupTestUser()
 
-	// Create a new gin engine
-	server := gin.New()
-
-	// Initialize the handler
-	NewHelloHandler(server)
-
-	// Create a request that we'll reuse
 	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", tokenString)
 
 	b.ResetTimer()
 
@@ -31,17 +23,11 @@ func BenchmarkHelloHandler(b *testing.B) {
 }
 
 func BenchmarkHelloHandler_Parallel(b *testing.B) {
-	// Set gin to test mode
-	gin.SetMode(gin.TestMode)
+	server, _ := setupTestServer()
+	tokenString, _ := setupTestUser()
 
-	// Create a new gin engine
-	server := gin.New()
-
-	// Initialize the handler
-	NewHelloHandler(server)
-
-	// Create a request that we'll reuse
 	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", tokenString)
 
 	b.ResetTimer()
 

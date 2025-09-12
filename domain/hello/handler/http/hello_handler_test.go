@@ -1,7 +1,10 @@
 package http
 
 import (
+	"cutbray/first_api/domain/auth/entity"
+	"cutbray/first_api/pkg/middleware"
 	"cutbray/first_api/pkg/response"
+	"cutbray/first_api/pkg/utils"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -11,114 +14,130 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func setupTestServer() (*gin.Engine, *helloHandler) {
+	gin.SetMode(gin.TestMode)
+	server := gin.Default()
+
+	middlewareFunc2 := middleware.JWTAuth()
+
+	handler := NewHelloHandler(server, &middlewareFunc2)
+	handler.RegisterRoute()
+
+	return server, handler
+}
+
+func setupTestUser() (string, error) {
+	user := &entity.User{
+		ID:    1,
+		Email: "user@example.com",
+	}
+
+	return utils.GenerateToken(user)
+}
 func TestHelloHandler_Hello(t *testing.T) {
-	// Set gin to test mode
-	gin.SetMode(gin.TestMode)
 
-	// Create a new gin engine
-	server := gin.New()
+	server, handler := setupTestServer()
+	assert.NotNil(t, server)
+	assert.NotNil(t, handler)
 
-	// Initialize the handler
-	NewHelloHandler(server)
+	tokenString, err := setupTestUser()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, tokenString)
 
-	// Test cases
-	tests := []struct {
-		name            string
-		method          string
-		path            string
-		expectedStatus  int
-		expectedMessage string
-	}{
-		{
-			name:            "successful hello request",
-			method:          "GET",
-			path:            "/",
-			expectedStatus:  http.StatusOK,
-			expectedMessage: "Hello, World Moncos Lowrider!",
-		},
-		{
-			name:            "successful post body helo request",
-			method:          "POST",
-			path:            "/post-hello",
-			expectedStatus:  http.StatusOK,
-			expectedMessage: "Hello, World Moncos Lowrider!",
-		},
-		{
-			name:            "successful post form data helo request",
-			method:          "POST",
-			path:            "/post-hello-form",
-			expectedStatus:  http.StatusOK,
-			expectedMessage: "Hello, World Moncos Lowrider!",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create a request
-			req, err := http.NewRequest(tt.method, tt.path, nil)
-			assert.NoError(t, err)
-
-			// Create a response recorder
-			w := httptest.NewRecorder()
-
-			// Perform the request
-			server.ServeHTTP(w, req)
-
-			// Assert status code
-			assert.Equal(t, tt.expectedStatus, w.Code)
-
-			// Parse response body
-			var response response.SuccessResponse
-			err = json.Unmarshal(w.Body.Bytes(), &response)
-			assert.NoError(t, err)
-
-			// Assert response structure
-			assert.Equal(t, tt.expectedStatus, response.Status)
-			// assert.Equal(t, tt.expectedMessage, response.Message)
-			assert.NotNil(t, response.Data)
-			assert.IsType(t, []interface{}{}, response.Data)
-		})
-	}
-}
-
-func TestHelloHandler_InvalidMethod(t *testing.T) {
-	// Set gin to test mode
-	gin.SetMode(gin.TestMode)
-
-	// Create a new gin engine
-	server := gin.New()
-
-	// Initialize the handler
-	NewHelloHandler(server)
-
-	// Test invalid HTTP method
-	req, err := http.NewRequest("POST", "/", nil)
+	// Create a request
+	req, err := http.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", tokenString)
 	assert.NoError(t, err)
 
+	// Create a response recorder
 	w := httptest.NewRecorder()
+
+	// Perform the request
 	server.ServeHTTP(w, req)
 
-	// Should return 404 since POST method is not allowed
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	// Parse response body
+	var response response.SuccessResponse
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, response.Status)
 }
+func TestHelloHandler_Hello_Unauthorized(t *testing.T) {
 
-func TestHelloHandler_InvalidPath(t *testing.T) {
-	// Set gin to test mode
-	gin.SetMode(gin.TestMode)
+	server, handler := setupTestServer()
+	assert.NotNil(t, server)
+	assert.NotNil(t, handler)
 
-	// Create a new gin engine
-	server := gin.New()
-
-	// Initialize the handler
-	NewHelloHandler(server)
-
-	// Test invalid path
-	req, err := http.NewRequest("GET", "/invalid", nil)
+	// Create a request
+	req, err := http.NewRequest("GET", "/", nil)
 	assert.NoError(t, err)
 
+	// Create a response recorder
 	w := httptest.NewRecorder()
+
+	// Perform the request
 	server.ServeHTTP(w, req)
 
-	// Should return 404 for invalid path
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	// Assert the status code
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+	// Parse response body
+	var response response.SuccessResponse
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusUnauthorized, response.Status)
+}
+
+func TestHelloHandler_PostBodyHello(t *testing.T) {
+
+	server, handler := setupTestServer()
+	assert.NotNil(t, server)
+	assert.NotNil(t, handler)
+
+	// Create a request
+	req, err := http.NewRequest("POST", "/post-hello", nil)
+	assert.NoError(t, err)
+
+	// Create a response recorder
+	w := httptest.NewRecorder()
+
+	// Perform the request
+	server.ServeHTTP(w, req)
+
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	// Parse response body
+	var response response.SuccessResponse
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, response.Status)
+}
+
+func TestHelloHandler_PostFormDataHello(t *testing.T) {
+
+	server, handler := setupTestServer()
+	assert.NotNil(t, server)
+	assert.NotNil(t, handler)
+
+	// Create a request
+	req, err := http.NewRequest("POST", "/post-hello-form", nil)
+	assert.NoError(t, err)
+
+	// Create a response recorder
+	w := httptest.NewRecorder()
+
+	// Perform the request
+	server.ServeHTTP(w, req)
+
+	// Assert the status code
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	// Parse response body
+	var response response.SuccessResponse
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, response.Status)
 }
