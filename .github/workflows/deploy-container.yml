@@ -72,9 +72,9 @@ jobs:
           echo "Database service is ready. Initializing database..."
           # Jalankan skrip init.sh secara manual
           # Perhatikan penggunaan '<' untuk mengalirkan isi file ke perintah mysql
-          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" < ./docker/mysql/init.sh
+          mariadb -h mysql -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" < ./docker/mysql/init.sh
           echo "Database initialized successfully."
-          
+
       - name: Cache go modules
         uses: actions/cache@v4
         id: cache
