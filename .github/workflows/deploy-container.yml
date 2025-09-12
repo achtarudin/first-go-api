@@ -33,7 +33,9 @@ jobs:
 
     container:
       image: golang:1.24-alpine
-
+      env:
+        PATH: /root/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    
     services:
       mysql:
         image: mariadb:10.6.21
@@ -46,33 +48,52 @@ jobs:
           - "3306:3306"
         volumes:
           - ./docker/mysql:/docker-entrypoint-initdb.d
-    
+        
+          # Tambahkan healthcheck agar step berikutnya menunggu DB siap
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Log go version
         run: go version
+
+      - name: Checkout code
+        uses: actions/checkout@v5
 
       - name: Install make, curl, and tar
         run: |
           apk add --no-cache make curl tar
           go install github.com/air-verse/air@v1.62.0
           go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
-          export PATH=$PATH:/root/go/bin
-
-      - name: Checkout code
-        uses: actions/checkout@v5
 
       - name: Cache go modules
-        uses: actions/cache/save@v4
+        uses: actions/cache@v4
         id: cache
         with:
           path: |
             $HOME/.cache/go-build
             /go/pkg/mod
-          key: go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          # Kunci ini akan cocok jika go.sum tidak berubah
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          # Jika tidak cocok persis, coba pulihkan dari cache terdekat
+          restore-keys: |
+            ${{ runner.os }}-go-
+            
+      # - name: Cache go modules
+      #   uses: actions/cache/save@v4
+      #   id: cache
+      #   with:
+      #     path: |
+      #       $HOME/.cache/go-build
+      #       /go/pkg/mod
+      #     key: go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: go mod tidy
+        run: make deps
 
       - name: Run tests
         run: make test-verbose
@@ -86,6 +107,7 @@ jobs:
           SERVER_PID=$!
           sleep 3
           curl -f http://localhost:8080
+          echo "Server started. Killing process."
           kill $SERVER_PID
 
       - name: Output Step
