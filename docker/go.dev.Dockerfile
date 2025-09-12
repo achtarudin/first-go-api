@@ -3,8 +3,8 @@ FROM golang:1.24-alpine
 WORKDIR /app
 
 RUN apk add --no-cache make
-RUN go install github.com/air-verse/air@latest
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install github.com/air-verse/air@v1.62.0
+RUN go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
 
 ENV PATH="/root/go/bin:${PATH}"
 

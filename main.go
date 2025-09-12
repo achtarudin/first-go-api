@@ -4,6 +4,7 @@ import (
 	"cutbray/first_api/infra"
 	"cutbray/first_api/pkg/middleware"
 	"cutbray/first_api/pkg/utils"
+	"fmt"
 
 	swagger "cutbray/first_api/domain/docs/handler/http"
 	hello "cutbray/first_api/domain/hello/handler/http"
@@ -29,6 +30,7 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println(configViper.GetString("DB_HOST"))
 	// Initialize database
 	db, err := infra.NewDatabase(infra.DatabaseConfig{
 		Host:     configViper.GetString("DB_HOST"),
@@ -72,15 +74,14 @@ func main() {
 		helloHandler.RegisterRoute()
 	}
 
-	// initialize swagger
+	// Initialize swagger
 	{
 		swaggerHadler := swagger.NewSwaggerHandler(server, "First GO API", "Documentation for First GO API")
 		swaggerHadler.RegisterRoute()
-
 	}
 
+	// Initialize auth
 	{
-		// initialize auth
 		authHandler := auth.NewAuthHandler(api, usecaseAuth, validate)
 		authHandler.RegisterRoute()
 	}

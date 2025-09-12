@@ -7,10 +7,10 @@ services:
       dockerfile: docker/go.dev.Dockerfile
     container_name: first_go_api_dev
     working_dir: /app
-    volumes:
-      - .:/app
     env_file:
       - .env
+    volumes:
+      - .:/app
     ports:
       - "${PORT}:8080"
 
@@ -27,7 +27,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mariadb_data:/var/lib/mysql:Z
+    - ./docker/mysql:/docker-entrypoint-initdb.d
+    - mariadb_data:/var/lib/mysql:Z
 
   # Service phpMyAdmin
   phpmyadmin:
