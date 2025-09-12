@@ -1,8 +1,8 @@
-package migrations_test
+package migration_test
 
 import (
 	"cutbray/first_api/infra"
-	"cutbray/first_api/migrations"
+	migration "cutbray/first_api/migration"
 	"fmt"
 	"testing"
 
@@ -57,8 +57,8 @@ func (suite *MigrationTestSuite) TestRunUpMigrations() {
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), db)
 
-	// run up migrations
-	versi1, err := migrations.RunUpMigrations(db, suite.config.GetString("DB_DRIVER"))
+	// run up migration
+	versi1, err := migration.RunUpMigrations(db, suite.config.GetString("DB_DRIVER"))
 
 	var totalTables1 int64
 	suite.db.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ?", suite.config.GetString("DB_DATABASE")).Scan(&totalTables1)
@@ -67,8 +67,8 @@ func (suite *MigrationTestSuite) TestRunUpMigrations() {
 	assert.NoError(suite.T(), err)
 	assert.True(suite.T(), *versi1 != 0)
 
-	// run refresh the migrations
-	versi2, err := migrations.RunRefreshMigrations(db, suite.config.GetString("DB_DRIVER"))
+	// run refresh the migration
+	versi2, err := migration.RunRefreshMigrations(db, suite.config.GetString("DB_DRIVER"))
 
 	var totalTables2 int64
 	suite.db.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ?", suite.config.GetString("DB_DATABASE")).Scan(&totalTables2)
