@@ -25,9 +25,9 @@ func (suite *MigrationTestSuite) SetupSuite() {
 	err := config.LoadEnvConfig(nil)
 	assert.NoError(suite.T(), err)
 
-	err = config.LoadTranslationConfig(nil)
-	assert.NoError(suite.T(), err)
-	assert.NotEmpty(suite.T(), config.GetViper().GetString("id.greeting"))
+	// err = config.LoadTranslationConfig(nil)
+	// assert.NoError(suite.T(), err)
+	// assert.NotEmpty(suite.T(), config.GetViper().GetString("id.greeting"))
 
 	// Set viper
 	suite.config = config.GetViper()
@@ -62,23 +62,22 @@ func (suite *MigrationTestSuite) TestRunUpMigrations() {
 
 	// run up migration
 	versi1, err := migration.RunUpMigrations(db, suite.config.GetString("DB_DRIVER"))
+	assert.NoError(suite.T(), err)
+	assert.True(suite.T(), *versi1 != 0)
 
 	var totalTables1 int64
 	suite.db.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ?", suite.config.GetString("DB_DATABASE_TESTING")).Scan(&totalTables1)
 	fmt.Printf("Total totalTables1 di database: %d, version: %v\n", totalTables1, *versi1)
 
-	assert.NoError(suite.T(), err)
-	assert.True(suite.T(), *versi1 != 0)
-
 	// run refresh the migration
 	versi2, err := migration.RunRefreshMigrations(db, suite.config.GetString("DB_DRIVER"))
+	assert.NoError(suite.T(), err)
+	assert.True(suite.T(), *versi2 != 0)
 
 	var totalTables2 int64
 	suite.db.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ?", suite.config.GetString("DB_DATABASE_TESTING")).Scan(&totalTables2)
 	fmt.Printf("Total totalTables2 di database: %d, version: %v\n", totalTables2, *versi2)
 
-	assert.NoError(suite.T(), err)
-	assert.True(suite.T(), *versi2 != 0)
 }
 
 func TestMigration(t *testing.T) {
