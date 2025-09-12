@@ -91,15 +91,9 @@ jobs:
         run: |
           cd bin && ./main &
           SERVER_PID=$!
-          echo "Waiting for server to start..."
-          # Gunakan loop yang lebih andal daripada 'sleep'
-          for i in {1..20}; do
-            curl -s -f http://localhost:8080/health && exit 0
-            sleep 1
-          done
-          echo "Server did not start in time."
+          sleep 3
+          curl -f http://localhost:8080/health
           kill $SERVER_PID
-          exit 1
 
       - name: Output Step
         run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}}
