@@ -20,7 +20,7 @@ jobs:
     steps:
 
       - name: GEAR AT var
-        run: echo "I play at ${{vars.PANGGUNG}} with my ${{vars.GUITAR}} guitar and ${{vars.BASS}} bass"
+        run: echo "I play at ${{vars.PANGGUNG}} with my ${{vars.GUITAR}} guitar and ${{vars.BASS}} bass, ticket ${{secrets.PRICE}}"
 
       - name: GEAR AT env
         env:
