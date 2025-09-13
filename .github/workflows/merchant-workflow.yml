@@ -13,8 +13,8 @@ jobs:
   
   information:
     env:
-      PANGGUNG: Ancol Beach
       GUITAR: Gibson
+      PANGGUNG: Ancol Beach
     runs-on: ubuntu-latest
     steps:
       - name: Object Github
