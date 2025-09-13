@@ -7,7 +7,7 @@ on:
 
 env: 
   GUITAR: Fender
-  BASS: Ibanez
+  BASS: Ibanez CUstom
 
 jobs:
   
