@@ -7,6 +7,7 @@ on:
 
 env: 
   GUITAR: Fender
+  BASS: Ibanez
 
 jobs:
   
@@ -18,15 +19,14 @@ jobs:
     steps:
       - name: Object Github
         run: echo "${{toJSON(github)}}"
+
       - name: The place I play
-        run: echo "I play at ${{env.PANGGUNG}} with my ${{env.GUITAR}} guitar"
+        run: echo "I play at ${{env.PANGGUNG}} with my ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
 
 
   music:
     needs: information
     runs-on: ubuntu-latest
     steps:
-      - name: Object Github
-        run: echo "${{toJSON(github)}}"
       - name: The guitar I play
-        run: echo "I play a ${{env.GUITAR}}"
+        run: echo "I play a ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
