@@ -30,14 +30,12 @@ jobs:
       - name: GEAR without curly braces
         run: echo "I play at $PANGGUNG with my $GUITAR guitar and $BASS bass"
 
-      - name: Checkout code
-        uses: actions/checkout@v5
-
       - name: Create secret directory
         run: mkdir -p secret
 
       - name: Create .prod.env file from secrets
         run: |
+          echo $(pwd)
           cd secret
           echo "${{ secrets.PROD_ENV }}" > .prod.env
           cat .prod.env
