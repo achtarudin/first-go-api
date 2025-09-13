@@ -33,6 +33,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Create secret directory
+        run: mkdir -p secret
+
       - name: Create .prod.env file from secrets
         run: echo "${{ secrets.PROD_ENV }}" > secret/.prod.env
 
