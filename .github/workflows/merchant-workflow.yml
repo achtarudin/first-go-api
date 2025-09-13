@@ -30,6 +30,9 @@ jobs:
       - name: GEAR without curly braces
         run: echo "I play at $PANGGUNG with my $GUITAR guitar and $BASS bass"
 
+      - name: Print Repository secret
+        run: echo "The ticket price is ${{secrets.PROD_ENV.DB_NAME}}"
+
 
   # music:
   #   needs: information
