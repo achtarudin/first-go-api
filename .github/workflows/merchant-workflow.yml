@@ -15,7 +15,7 @@ jobs:
     environment: development
     env:
       GUITAR: ${{vars.GUITAR}}
-      PANGGUNG: ${{vars.GUITAR}}
+      PANGGUNG: ${{vars.PANGGUNG}}
     runs-on: ubuntu-latest
     steps:
 
@@ -37,7 +37,10 @@ jobs:
         run: mkdir -p secret
 
       - name: Create .prod.env file from secrets
-        run: echo "${{ secrets.PROD_ENV }}" > secret/.prod.env
+        run: |
+          cd secret
+          echo "${{ secrets.PROD_ENV }}" > .prod.env
+          cat .prod.env
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
