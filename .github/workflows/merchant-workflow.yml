@@ -32,13 +32,14 @@ jobs:
       
       - name: Checkout code
         uses: actions/checkout@v5
-        
+
       - name: Create secret directory
         run: mkdir -p secret
 
       - name: Create .prod.env file from secrets
         run: |
           echo $(pwd)
+          ls -la
           cd secret
           echo $(pwd)
           echo "${{ secrets.PROD_ENV }}" > .prod.env
@@ -48,7 +49,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: binary-files
+          name: my-artifact
           path: secret
 
   # music:
