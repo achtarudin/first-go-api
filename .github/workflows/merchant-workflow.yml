@@ -19,20 +19,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: The place I play
+      - name: GEAR AT var
+        run: echo "I play at ${{vars.PANGGUNG}} with my ${{vars.GUITAR}} guitar and ${{vars.BASS}} bass"
+
+      - name: GEAR AT env
         env:
           PANGGUNG: Ancol Beach
-        run: echo "I play at ${{env.PANGGUNG}} with my ${{vars.GUITAR}} guitar and ${{vars.BASS}} bass"
+        run: echo "I play at ${{env.PANGGUNG}} with my ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
       
-      - name: The place I play without curly braces
+      - name: GEAR without curly braces
         run: echo "I play at $PANGGUNG with my $GUITAR guitar and $BASS bass"
 
 
-  music:
-    needs: information
-    runs-on: ubuntu-latest
-    steps:
-      - name: The guitar I play
-        env:
-          PANGGUNG: GBK Sport Hall
-        run: echo "I play a ${{env.GUITAR}} guitar and ${{env.BASS}} bass at $PANGGUNG"
+  # music:
+  #   needs: information
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: The guitar I play
+  #       env:
+  #         PANGGUNG: GBK Sport Hall
+  #       run: echo "I play a ${{env.GUITAR}} guitar and ${{env.BASS}} bass at $PANGGUNG"
