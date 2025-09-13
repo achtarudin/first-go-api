@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: binary-files
-          path: secret
+          path: secret/.prod.env
 
   # music:
   #   needs: information
