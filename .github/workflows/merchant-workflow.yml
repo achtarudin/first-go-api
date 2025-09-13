@@ -21,7 +21,7 @@ jobs:
         run: echo "${{toJSON(github)}}"
 
       - name: The place I play
-        run: echo "I play at $PANGGUNG with my ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
+        run: echo "I play at $PANGGUNG with my ${{env.GUITAR}} guitar and $BASS bass"
 
 
   music:
