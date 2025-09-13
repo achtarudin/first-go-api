@@ -1,0 +1,13 @@
+name: Merchant Workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/merchant]
+	
+jobs:
+  information:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Object Github
+        run: echo "${{toJSON(github)}}"
