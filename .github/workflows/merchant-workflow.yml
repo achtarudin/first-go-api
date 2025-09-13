@@ -5,9 +5,9 @@ on:
   push:
     branches: [feat/merchant]
 
-# env: 
-#   GUITAR: Fender
-#   BASS: Ibanez
+env: 
+  GUITAR: Fender
+  BASS: Ibanez
 
 jobs:
   
@@ -22,7 +22,7 @@ jobs:
       - name: The place I play
         env:
           PANGGUNG: Ancol Beach
-        run: echo "I play at ${{env.PANGGUNG}} with my ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
+        run: echo "I play at ${{env.PANGGUNG}} with my ${{vars.GUITAR}} guitar and ${{vars.BASS}} bass"
       
       - name: The place I play without curly braces
         run: echo "I play at $PANGGUNG with my $GUITAR guitar and $BASS bass"
