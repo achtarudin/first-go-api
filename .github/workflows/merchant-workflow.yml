@@ -23,6 +23,7 @@ jobs:
 
 
   music:
+    needs: information
     runs-on: ubuntu-latest
     steps:
       - name: Object Github
