@@ -13,8 +13,8 @@ jobs:
   
   information:
     environment: development
-    # env:
-    #   GUITAR: Gibson
+    env:
+      GUITAR: Gibson
     #   PANGGUNG: Ancol Beach
     runs-on: ubuntu-latest
     steps:
