@@ -14,7 +14,7 @@ jobs:
   information:
     environment: development
     env:
-      GUITAR: Gibson
+      GUITAR: Override with Gibson
     #   PANGGUNG: Ancol Beach
     runs-on: ubuntu-latest
     steps:
