@@ -33,24 +33,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Create secret directory
-        run: mkdir -p secret
-
       - name: Create .prod.env file from secrets
         run: |
-          echo $(pwd)
-          ls -la
-          cd secret
-          echo $(pwd)
-          echo "${{ secrets.PROD_ENV }}" > .prod.env
-          cat .prod.env
-          ls -la
+          # Buat direktori dan langsung tulis file di dalamnya tanpa perlu 'cd'
+          mkdir -p secret
+          echo "${{ secrets.PROD_ENV }}" > secret/.prod.env
 
+          # Opsional: Verifikasi isi file untuk debugging
+          echo "Verifying contents of the secret directory:"
+          ls -la secret
+          echo "---"
+          echo "Verifying content of the .prod.env file:"
+          cat secret/.prod.env
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: my-artifact
-          path: secret
+          path: secret/
 
   # music:
   #   needs: information
