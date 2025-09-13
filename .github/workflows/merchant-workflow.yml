@@ -21,7 +21,10 @@ jobs:
         run: echo "${{toJSON(github)}}"
 
       - name: The place I play
-        run: echo "I play at $PANGGUNG with my ${{env.GUITAR}} guitar and $BASS bass"
+        run: echo "I play at ${{env.PANGGUNG}} with my ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
+      
+      - name: The place I play without curly braces
+        run: echo "I play at $PANGGUNG with my $GUITAR guitar and $BASS bass"
 
 
   music:
@@ -31,4 +34,4 @@ jobs:
       - name: The guitar I play
         env:
           PANGGUNG: GBK Sport Hall
-        run: echo "I play a ${{env.GUITAR}} guitar and ${{env.BASS}} bass at ${{env.PANGGUNG}}"
+        run: echo "I play a ${{env.GUITAR}} guitar and ${{env.BASS}} bass at $PANGGUNG"
