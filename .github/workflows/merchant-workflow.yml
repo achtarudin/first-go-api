@@ -29,7 +29,10 @@ jobs:
       
       - name: GEAR without curly braces
         run: echo "I play at $PANGGUNG with my $GUITAR guitar and $BASS bass"
-
+      
+      - name: Checkout code
+        uses: actions/checkout@v5
+        
       - name: Create secret directory
         run: mkdir -p secret
 
@@ -46,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: binary-files
-          path: secret/.prod.env
+          path: secret
 
   # music:
   #   needs: information
