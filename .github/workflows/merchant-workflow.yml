@@ -13,9 +13,9 @@ jobs:
   
   information:
     environment: development
-    # env:
-      # GUITAR: Gibson
-    #   PANGGUNG: Ancol Beach
+    env:
+      GUITAR: ${{vars.GUITAR}}
+      PANGGUNG: ${{vars.GUITAR}}
     runs-on: ubuntu-latest
     steps:
 
