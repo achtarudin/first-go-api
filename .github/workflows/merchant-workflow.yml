@@ -37,17 +37,18 @@ jobs:
         run: |
           # Buat direktori dan langsung tulis file di dalamnya tanpa perlu 'cd'
           mkdir -p secret
-          echo "${{ secrets.PROD_ENV }}" > secret/.prod.env
+          echo "${{ secrets.PROD_ENV }}" > secret/prod.env
 
           # Opsional: Verifikasi isi file untuk debugging
           echo "Verifying contents of the secret directory:"
           ls -la secret
           echo "---"
-          echo "Verifying content of the .prod.env file:"
-          cat secret/.prod.env
+          echo "Verifying content of the prod.env file:"
+          cat secret/prod.env
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true
           name: my-artifact
           path: secret/
 
