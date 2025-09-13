@@ -5,7 +5,7 @@ on:
     inputs:
       tags:
         description: 'Test scenario tags'
-        required: tru
+        required: true
         type: boolean
 
   push: 
