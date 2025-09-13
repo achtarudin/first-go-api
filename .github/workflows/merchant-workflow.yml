@@ -17,8 +17,8 @@ jobs:
       PANGGUNG: Ancol Beach
     runs-on: ubuntu-latest
     steps:
-      - name: Object Github
-        run: echo "${{toJSON(github)}}"
+      # - name: Object Github
+      #   run: echo "${{toJSON(github)}}"
 
       - name: The place I play
         run: echo "I play at ${{env.PANGGUNG}} with my ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
