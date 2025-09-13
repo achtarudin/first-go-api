@@ -7,14 +7,14 @@ on:
 
 env: 
   GUITAR: Fender
-  BASS: Ibanez CUstom
+  BASS: Ibanez
 
 jobs:
   
   information:
     environment: development
-    env:
-      GUITAR: Override with Gibson
+    # env:
+      # GUITAR: Gibson
     #   PANGGUNG: Ancol Beach
     runs-on: ubuntu-latest
     steps:
