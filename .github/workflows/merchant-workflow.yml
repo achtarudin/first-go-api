@@ -29,4 +29,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: The guitar I play
-        run: echo "I play a ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
+        env:
+          PANGGUNG: GBK Sport Hall
+        run: echo "I play a ${{env.GUITAR}} guitar and ${{env.BASS}} bass at ${{env.PANGGUNG}}"
