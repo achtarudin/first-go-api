@@ -9,7 +9,7 @@ import (
 // Courier represents the couriers table
 type Courier struct {
 	ID        uint           `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name      string         `json:"name" gorm:"type:varchar(100);not null"`
+	UserID    *uint          `json:"user_id" gorm:"index"`
 	Phone     string         `json:"phone" gorm:"type:varchar(20)"`
 	Latitude  *float64       `json:"latitude" gorm:"type:double"`
 	Longitude *float64       `json:"longitude" gorm:"type:double"`
@@ -19,6 +19,7 @@ type Courier struct {
 
 	// Relationships
 	Transactions []Transaction `json:"transactions,omitempty" gorm:"foreignKey:CourierID"`
+	User         *User         `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 
 // TableName specifies the table name for the Courier model
