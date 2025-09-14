@@ -19,39 +19,24 @@ type MigrationTestSuite struct {
 
 func (suite *MigrationTestSuite) SetupSuite() {
 
-	config := infra.NewAppConfig()
-
-	// Load .test.env config
-	err := config.LoadEnvConfig(nil)
+	appConfig, db, err := migration.UsingFreshDatabaseTesting()
 	assert.NoError(suite.T(), err)
-
-	// err = config.LoadTranslationConfig(nil)
-	// assert.NoError(suite.T(), err)
-	// assert.NotEmpty(suite.T(), config.GetViper().GetString("id.greeting"))
-
-	// Set viper
-	suite.config = config.GetViper()
-	assert.NotNil(suite.T(), suite.config)
-
-	// Config database
-	db, err := infra.NewDatabase(infra.DatabaseConfig{
-		Host:     suite.config.GetString("DB_HOST"),
-		Port:     suite.config.GetInt("DB_PORT"),
-		User:     "root",
-		Password: suite.config.GetString("DB_PASSWORD"),
-		DBName:   suite.config.GetString("DB_DATABASE_TESTING"),
-	})
-	assert.NoError(suite.T(), err)
-	assert.NotNil(suite.T(), db)
 
 	suite.db = db
+	suite.config = appConfig
+
 	assert.NotNil(suite.T(), suite.db)
+	assert.NotNil(suite.T(), suite.config)
+
 }
 
 func (suite *MigrationTestSuite) TearDownSuite() {
-	err := suite.db.Close()
-	assert.NoError(suite.T(), err)
-	fmt.Println("Database connection closed.")
+	if suite.db != nil {
+		err := suite.db.Close()
+		assert.NoError(suite.T(), err)
+		fmt.Println("Database connection closed.")
+	}
+
 }
 
 func (suite *MigrationTestSuite) TestRunUpMigrations() {

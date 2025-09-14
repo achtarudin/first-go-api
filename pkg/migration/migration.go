@@ -2,10 +2,13 @@ package migration
 
 import (
 	"context"
+	"cutbray/first_api/infra"
 	"database/sql"
 	"embed"
+	"errors"
 
 	"github.com/pressly/goose/v3"
+	"github.com/spf13/viper"
 )
 
 //go:embed *.sql
@@ -65,5 +68,41 @@ func RunRefreshMigrations(db *sql.DB, dialect string) (version *int64, err error
 	}
 
 	return &migrateVersion, nil
+
+}
+
+func UsingFreshDatabaseTesting() (appConfig *viper.Viper, database *infra.Database, err error) {
+	config := infra.NewAppConfig()
+
+	err = config.LoadEnvConfig(nil)
+
+	if err != nil {
+		return nil, nil, errors.New("failed to load env config: " + err.Error())
+	}
+
+	viperConfig := config.GetViper()
+
+	// Config database
+	db, err := infra.NewDatabase(infra.DatabaseConfig{
+		Host:     viperConfig.GetString("DB_HOST"),
+		Port:     viperConfig.GetInt("DB_PORT"),
+		User:     viperConfig.GetString("DB_USER"),
+		Password: viperConfig.GetString("DB_PASSWORD"),
+		DBName:   viperConfig.GetString("DB_DATABASE_TESTING"),
+	})
+
+	sqlDB, err := db.DB.DB()
+
+	if err != nil {
+		return nil, nil, errors.New("failed to get sql.DB from gorm.DB: " + err.Error())
+	}
+
+	_, err = RunRefreshMigrations(sqlDB, viperConfig.GetString("DB_DRIVER"))
+
+	if err != nil {
+		return nil, nil, errors.New("failed to run refresh migrations: " + err.Error())
+	}
+
+	return viperConfig, db, nil
 
 }

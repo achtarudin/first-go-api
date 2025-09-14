@@ -25,31 +25,16 @@ type CourierRepositoryTestSuite struct {
 }
 
 func (suite *CourierRepositoryTestSuite) SetupSuite() {
-	config := infra.NewAppConfig()
-	assert.NotNil(suite.T(), config)
-
-	err := config.LoadEnvConfig(nil)
+	appConfig, db, err := migration.UsingFreshDatabaseTesting()
 	assert.NoError(suite.T(), err)
 
-	suite.config = config.GetViper()
+	suite.db = db
+	suite.config = appConfig
+
+	assert.NotNil(suite.T(), suite.db)
 	assert.NotNil(suite.T(), suite.config)
 
-	// Config database
-	db, err := infra.NewDatabase(infra.DatabaseConfig{
-		Host:     suite.config.GetString("DB_HOST"),
-		Port:     suite.config.GetInt("DB_PORT"),
-		User:     suite.config.GetString("DB_USER"),
-		Password: suite.config.GetString("DB_PASSWORD"),
-		DBName:   suite.config.GetString("DB_DATABASE_TESTING"),
-	})
-	suite.db = db
-	assert.NoError(suite.T(), err)
-	assert.NotNil(suite.T(), suite.db)
-
-	sqlDB, err := suite.db.DB.DB()
-	_, err = migration.RunUpMigrations(sqlDB, suite.config.GetString("DB_DRIVER"))
-	assert.NoError(suite.T(), err)
-
+	// Initialize the repository
 	suite.courierRepository = NewCourierRepository(suite.db.DB)
 	assert.NotNil(suite.T(), suite.courierRepository)
 }
