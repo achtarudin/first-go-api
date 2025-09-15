@@ -16,6 +16,10 @@ import (
 	courierRepo "cutbray/first_api/domain/courier/repository"
 	courierUsecase "cutbray/first_api/domain/courier/usecase"
 
+	merchant "cutbray/first_api/domain/merchant/handler/http"
+	merchantRepo "cutbray/first_api/domain/merchant/repository"
+	merchantUsecase "cutbray/first_api/domain/merchant/usecase"
+
 	"github.com/fatih/color"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -93,6 +97,14 @@ func main() {
 			usecaseCourier := courierUsecase.NewCourierUsecase(courierRepo)
 			courierHandler := courier.NewCourierHandler(api, usecaseCourier, validate)
 			courierHandler.RegisterRoute()
+		}
+
+		// Initialize merchant
+		{
+			merchantRepo := merchantRepo.NewMerchantRepository(db.DB)
+			usecaseMerchant := merchantUsecase.NewMerchantUsecase(merchantRepo)
+			merchantHandler := merchant.NewMerchantHandler(api, usecaseMerchant, validate)
+			merchantHandler.RegisterRoute()
 		}
 	}
 
