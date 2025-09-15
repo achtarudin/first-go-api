@@ -32,7 +32,7 @@ CREATE TABLE foods (
     created_at TIMESTAMP NULL DEFAULT NULL,
     updated_at TIMESTAMP NULL DEFAULT NULL,
     deleted_at TIMESTAMP NULL DEFAULT NULL,
-    FOREIGN KEY (merchant_id) REFERENCES merchants(id),
+    CONSTRAINT fk_foods_merchant_id FOREIGN KEY fk_foods_merchant_id (merchant_id) REFERENCES merchants(id),
     INDEX idx_foods_merchant_id (merchant_id)
 );
 

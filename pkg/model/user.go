@@ -19,6 +19,8 @@ type User struct {
 	// Relationships
 	Merchants    []Merchant    `json:"merchants,omitempty" gorm:"foreignKey:UserID"`
 	Transactions []Transaction `json:"transactions,omitempty" gorm:"foreignKey:UserID"`
+	Roles        []*Role       `gorm:"many2many:user_roles;"`
+	Courier      Courier       `json:"courier,omitempty" gorm:"foreignKey:UserID"`
 }
 
 // TableName specifies the table name for the User model
