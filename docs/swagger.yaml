@@ -253,7 +253,7 @@ paths:
           description: Internal Server Error
       tags:
       - Auth
-  /api/courier/login:
+  /api/couriers/login:
     post:
       consumes:
       - application/json
@@ -287,10 +287,10 @@ paths:
           description: Unprocessable Entity
         "500":
           description: Internal Server Error
-      summary: Authenticate courier with email and password
+      summary: Authenticate couriers with email and password
       tags:
-      - Courier
-  /api/courier/register:
+      - Couriers
+  /api/couriers/register:
     post:
       consumes:
       - application/json
@@ -326,8 +326,8 @@ paths:
           description: Internal Server Error
       summary: Register a new courier
       tags:
-      - Courier
-  /api/merchant/login:
+      - Couriers
+  /api/merchants/login:
     post:
       consumes:
       - application/json
@@ -361,10 +361,10 @@ paths:
           description: Unprocessable Entity
         "500":
           description: Internal Server Error
-      summary: Authenticate merchant with email and password
+      summary: Authenticate merchants with email and password
       tags:
-      - Merchant
-  /api/merchant/register:
+      - Merchants
+  /api/merchants/register:
     post:
       consumes:
       - application/json
@@ -400,7 +400,7 @@ paths:
           description: Internal Server Error
       summary: Register a new merchant
       tags:
-      - Merchant
+      - Merchants
   /health:
     get:
       consumes:

@@ -26,14 +26,14 @@ func NewMerchantHandler(router *gin.RouterGroup, usecase usecase.MerchantUsecase
 }
 
 func (h *merchantHandler) RegisterRoute() {
-	h.router.POST("/merchant/login", h.Login)
-	h.router.POST("/merchant/register", h.Register)
+	h.router.POST("/merchants/login", h.Login)
+	h.router.POST("/merchants/register", h.Register)
 }
 
 // Login godoc
 //
-//	@Summary	Authenticate merchant with email and password
-//	@Tags		Merchant
+//	@Summary	Authenticate merchants with email and password
+//	@Tags		Merchants
 //	@Accept		json
 //	@Param		payload	body	request.LoginRequest	true	"json type"
 //	@Produce	json
@@ -43,7 +43,7 @@ func (h *merchantHandler) RegisterRoute() {
 //	@Failure	404
 //	@Failure	422
 //	@Failure	500
-//	@Router		/api/merchant/login [post]
+//	@Router		/api/merchants/login [post]
 func (h *merchantHandler) Login(c *gin.Context) {
 	var json request.LoginRequest
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -73,7 +73,7 @@ func (h *merchantHandler) Login(c *gin.Context) {
 // Register godoc
 //
 //	@Summary	Register a new merchant
-//	@Tags		Merchant
+//	@Tags		Merchants
 //	@Accept		json
 //	@Param		payload	body	request.RegisterRequest	true	"json type"
 //	@Produce	json
@@ -83,7 +83,7 @@ func (h *merchantHandler) Login(c *gin.Context) {
 //	@Failure	404
 //	@Failure	422
 //	@Failure	500
-//	@Router		/api/merchant/register [post]
+//	@Router		/api/merchants/register [post]
 func (h *merchantHandler) Register(c *gin.Context) {
 	// Validate input
 	var json request.RegisterRequest

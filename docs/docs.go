@@ -197,7 +197,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/courier/login": {
+        "/api/couriers/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -206,9 +206,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Courier"
+                    "Couriers"
                 ],
-                "summary": "Authenticate courier with email and password",
+                "summary": "Authenticate couriers with email and password",
                 "parameters": [
                     {
                         "description": "json type",
@@ -258,7 +258,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/courier/register": {
+        "/api/couriers/register": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -267,7 +267,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Courier"
+                    "Couriers"
                 ],
                 "summary": "Register a new courier",
                 "parameters": [
@@ -319,7 +319,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/merchant/login": {
+        "/api/merchants/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -328,9 +328,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Merchant"
+                    "Merchants"
                 ],
-                "summary": "Authenticate merchant with email and password",
+                "summary": "Authenticate merchants with email and password",
                 "parameters": [
                     {
                         "description": "json type",
@@ -380,7 +380,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/merchant/register": {
+        "/api/merchants/register": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -389,7 +389,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Merchant"
+                    "Merchants"
                 ],
                 "summary": "Register a new merchant",
                 "parameters": [

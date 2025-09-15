@@ -26,14 +26,14 @@ func NewCourierHandler(router *gin.RouterGroup, usecase usecase.CourierUsecase, 
 }
 
 func (h *courierHandler) RegisterRoute() {
-	h.router.POST("/courier/login", h.Login)
-	h.router.POST("/courier/register", h.Register)
+	h.router.POST("/couriers/login", h.Login)
+	h.router.POST("/couriers/register", h.Register)
 }
 
 // Login godoc
 //
-//	@Summary	Authenticate courier with email and password
-//	@Tags		Courier
+//	@Summary	Authenticate couriers with email and password
+//	@Tags		Couriers
 //	@Accept		json
 //	@Param		payload	body	request.LoginRequest	true	"json type"
 //	@Produce	json
@@ -43,7 +43,7 @@ func (h *courierHandler) RegisterRoute() {
 //	@Failure	404
 //	@Failure	422
 //	@Failure	500
-//	@Router		/api/courier/login [post]
+//	@Router		/api/couriers/login [post]
 func (h *courierHandler) Login(c *gin.Context) {
 	var json request.LoginRequest
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -73,7 +73,7 @@ func (h *courierHandler) Login(c *gin.Context) {
 // Register godoc
 //
 //	@Summary	Register a new courier
-//	@Tags		Courier
+//	@Tags		Couriers
 //	@Accept		json
 //	@Param		payload	body	request.RegisterRequest	true	"json type"
 //	@Produce	json
@@ -83,7 +83,7 @@ func (h *courierHandler) Login(c *gin.Context) {
 //	@Failure	404
 //	@Failure	422
 //	@Failure	500
-//	@Router		/api/courier/register [post]
+//	@Router		/api/couriers/register [post]
 func (h *courierHandler) Register(c *gin.Context) {
 	// Validate input
 	var json request.RegisterRequest
