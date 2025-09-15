@@ -1,17 +1,5 @@
 definitions:
-  request.HelloRequest:
-    properties:
-      age:
-        example: 27
-        type: integer
-      email:
-        example: john.doe@example.com
-        type: string
-      name:
-        example: John Doe
-        type: string
-    type: object
-  request.LoginRequest:
+  cutbray_first_api_domain_auth_handler_request.LoginRequest:
     properties:
       email:
         example: user@example.com
@@ -25,7 +13,7 @@ definitions:
     - email
     - password
     type: object
-  request.RegisterRequest:
+  cutbray_first_api_domain_auth_handler_request.RegisterRequest:
     properties:
       email:
         example: user@example.com
@@ -48,6 +36,62 @@ definitions:
     - name
     - password
     - password_confirmation
+    type: object
+  cutbray_first_api_domain_courier_handler_request.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  cutbray_first_api_domain_courier_handler_request.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+      password:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+      password_confirmation:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+      phone:
+        example: "+6282118302438"
+        maxLength: 15
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    - password_confirmation
+    - phone
+    type: object
+  request.HelloRequest:
+    properties:
+      age:
+        example: 27
+        type: integer
+      email:
+        example: john.doe@example.com
+        type: string
+      name:
+        example: John Doe
+        type: string
     type: object
   response.SuccessResponse:
     properties:
@@ -108,7 +152,7 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/request.LoginRequest'
+          $ref: '#/definitions/cutbray_first_api_domain_auth_handler_request.LoginRequest'
       produces:
       - application/json
       responses:
@@ -145,7 +189,7 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/request.RegisterRequest'
+          $ref: '#/definitions/cutbray_first_api_domain_auth_handler_request.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -171,6 +215,80 @@ paths:
           description: Internal Server Error
       tags:
       - Auth
+  /api/courier/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cutbray_first_api_domain_courier_handler_request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Authenticate courier with email and password
+      tags:
+      - Courier
+  /api/courier/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cutbray_first_api_domain_courier_handler_request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Register a new courier
+      tags:
+      - Courier
   /health:
     get:
       consumes:

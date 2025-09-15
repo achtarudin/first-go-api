@@ -94,7 +94,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.LoginRequest"
+                            "$ref": "#/definitions/cutbray_first_api_domain_auth_handler_request.LoginRequest"
                         }
                     }
                 ],
@@ -155,7 +155,129 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.RegisterRequest"
+                            "$ref": "#/definitions/cutbray_first_api_domain_auth_handler_request.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success response so the data field is array of any type",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/courier/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Courier"
+                ],
+                "summary": "Authenticate courier with email and password",
+                "parameters": [
+                    {
+                        "description": "json type",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cutbray_first_api_domain_courier_handler_request.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success response so the data field is array of any type",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/courier/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Courier"
+                ],
+                "summary": "Register a new courier",
+                "parameters": [
+                    {
+                        "description": "json type",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cutbray_first_api_domain_courier_handler_request.RegisterRequest"
                         }
                     }
                 ],
@@ -381,24 +503,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "request.HelloRequest": {
-            "type": "object",
-            "properties": {
-                "age": {
-                    "type": "integer",
-                    "example": 27
-                },
-                "email": {
-                    "type": "string",
-                    "example": "john.doe@example.com"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "John Doe"
-                }
-            }
-        },
-        "request.LoginRequest": {
+        "cutbray_first_api_domain_auth_handler_request.LoginRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -417,7 +522,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.RegisterRequest": {
+        "cutbray_first_api_domain_auth_handler_request.RegisterRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -445,6 +550,80 @@ const docTemplate = `{
                     "maxLength": 100,
                     "minLength": 6,
                     "example": "password"
+                }
+            }
+        },
+        "cutbray_first_api_domain_courier_handler_request.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 6,
+                    "example": "password"
+                }
+            }
+        },
+        "cutbray_first_api_domain_courier_handler_request.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password",
+                "password_confirmation",
+                "phone"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 6,
+                    "example": "password"
+                },
+                "password_confirmation": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 6,
+                    "example": "password"
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 15,
+                    "minLength": 6,
+                    "example": "+6282118302438"
+                }
+            }
+        },
+        "request.HelloRequest": {
+            "type": "object",
+            "properties": {
+                "age": {
+                    "type": "integer",
+                    "example": 27
+                },
+                "email": {
+                    "type": "string",
+                    "example": "john.doe@example.com"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
                 }
             }
         },

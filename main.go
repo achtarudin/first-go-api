@@ -9,8 +9,12 @@ import (
 	hello "cutbray/first_api/domain/hello/handler/http"
 
 	auth "cutbray/first_api/domain/auth/handler/http"
-	repoAuth "cutbray/first_api/domain/auth/repository"
-	usecaseAuth "cutbray/first_api/domain/auth/usecase"
+	authRepo "cutbray/first_api/domain/auth/repository"
+	authUsecase "cutbray/first_api/domain/auth/usecase"
+
+	courier "cutbray/first_api/domain/courier/handler/http"
+	courierRepo "cutbray/first_api/domain/courier/repository"
+	courierUsecase "cutbray/first_api/domain/courier/usecase"
 
 	"github.com/fatih/color"
 	"github.com/gin-contrib/cors"
@@ -54,34 +58,42 @@ func main() {
 	server.Use(cors.Default())
 	server.SetTrustedProxies([]string{"127.0.0.1"})
 
-	// Initialize Repository
-	repoAuth := repoAuth.NewAuthRepository(db.DB)
-
-	// Initialize Usecase
-	usecaseAuth := usecaseAuth.NewAuthUsecase(repoAuth)
-
-	// Initialize Middleware
-	authMiddleware := middleware.JWTAuth()
-
-	// Initialize API group
-	api := server.Group("/api")
-
-	// Initialize hello
-	{
-		helloHandler := hello.NewHelloHandler(server, &authMiddleware)
-		helloHandler.RegisterRoute()
-	}
-
 	// Initialize swagger
 	{
 		swaggerHadler := swagger.NewSwaggerHandler(server, "First GO API", "Documentation for First GO API")
 		swaggerHadler.RegisterRoute()
 	}
 
-	// Initialize auth
 	{
-		authHandler := auth.NewAuthHandler(api, usecaseAuth, validate)
-		authHandler.RegisterRoute()
+		// Initialize Middleware
+		authMiddleware := middleware.JWTAuth()
+
+		// Initialize hello
+		{
+			helloHandler := hello.NewHelloHandler(server, &authMiddleware)
+			helloHandler.RegisterRoute()
+		}
+	}
+
+	{
+		// Initialize API group
+		api := server.Group("/api")
+
+		// Initialize auth
+		{
+			repoAuth := authRepo.NewAuthRepository(db.DB)
+			usecaseAuth := authUsecase.NewAuthUsecase(repoAuth)
+			authHandler := auth.NewAuthHandler(api, usecaseAuth, validate)
+			authHandler.RegisterRoute()
+		}
+
+		// Initialize courier
+		{
+			courierRepo := courierRepo.NewCourierRepository(db.DB)
+			usecaseCourier := courierUsecase.NewCourierUsecase(courierRepo)
+			courierHandler := courier.NewCourierHandler(api, usecaseCourier, validate)
+			courierHandler.RegisterRoute()
+		}
 	}
 
 	server.Run(":8080")

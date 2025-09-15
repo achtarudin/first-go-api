@@ -61,7 +61,7 @@ func (h *helloHandler) Hello(c *gin.Context) {
 //	@Tags			Hello
 //	@Accept			json
 //	@Produce		json
-//	@Success		200		{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success		200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success		201
 //	@Failure		400
 //	@Failure		404
