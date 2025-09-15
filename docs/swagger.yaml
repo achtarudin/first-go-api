@@ -81,6 +81,44 @@ definitions:
     - password_confirmation
     - phone
     type: object
+  cutbray_first_api_domain_merchant_handler_request.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  cutbray_first_api_domain_merchant_handler_request.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+      password:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+      password_confirmation:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    - password_confirmation
+    type: object
   request.HelloRequest:
     properties:
       age:
@@ -289,6 +327,80 @@ paths:
       summary: Register a new courier
       tags:
       - Courier
+  /api/merchant/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cutbray_first_api_domain_merchant_handler_request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Authenticate merchant with email and password
+      tags:
+      - Merchant
+  /api/merchant/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cutbray_first_api_domain_merchant_handler_request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Register a new merchant
+      tags:
+      - Merchant
   /health:
     get:
       consumes:
