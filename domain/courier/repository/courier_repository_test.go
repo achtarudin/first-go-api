@@ -35,7 +35,7 @@ func (suite *CourierRepositoryTestSuite) SetupSuite() {
 	assert.NotNil(suite.T(), suite.config)
 
 	// Initialize the repository
-	suite.courierRepository = NewCourierRepository(suite.db.DB)
+	suite.courierRepository = NewCourierRepository(suite.db)
 	assert.NotNil(suite.T(), suite.courierRepository)
 }
 
@@ -81,7 +81,7 @@ func (suite *CourierRepositoryTestSuite) TestSaveCourier() {
 		roleId, err := suite.courierRepository.FindRoleCourier(context, model.RoleCourier, tx)
 		assert.NoError(suite.T(), err)
 
-		newCourier := &entity.Courier{
+		courier := &entity.Courier{
 			Name:     "John Doe",
 			Email:    fmt.Sprintf("%d@email.com", timestamp),
 			RoleID:   int(roleId),
@@ -89,8 +89,8 @@ func (suite *CourierRepositoryTestSuite) TestSaveCourier() {
 			Phone:    fmt.Sprintf("+62%d", timestamp),
 		}
 
-		fmt.Println("New Courier:", newCourier)
-		err = suite.courierRepository.Create(context, newCourier, tx)
+		fmt.Println("New Courier:", courier)
+		newCourier, err := suite.courierRepository.Create(context, courier, tx)
 		assert.NoError(suite.T(), err)
 		assert.NotZero(suite.T(), newCourier.ID)
 		return err
@@ -108,7 +108,7 @@ func (suite *CourierRepositoryTestSuite) TestSaveCourierDuplicateEmail() {
 		roleId, err := suite.courierRepository.FindRoleCourier(context, model.RoleCourier, tx)
 		assert.NoError(suite.T(), err)
 
-		newCourier1 := &entity.Courier{
+		courier1 := &entity.Courier{
 			Name:     "John Doe",
 			Email:    fmt.Sprintf("%d@email.com", timestamp),
 			RoleID:   int(roleId),
@@ -116,18 +116,18 @@ func (suite *CourierRepositoryTestSuite) TestSaveCourierDuplicateEmail() {
 			Phone:    fmt.Sprintf("+62%d", timestamp),
 		}
 
-		err = suite.courierRepository.Create(context, newCourier1, tx)
+		newCourier1, err := suite.courierRepository.Create(context, courier1, tx)
 		assert.NoError(suite.T(), err)
 		assert.NotZero(suite.T(), newCourier1.ID)
 
-		newCourier2 := &entity.Courier{
+		courier2 := &entity.Courier{
 			Name:     "John Doe",
 			Email:    fmt.Sprintf("%d@email.com", timestamp),
 			RoleID:   int(roleId),
 			Password: hashedPassword,
 			Phone:    fmt.Sprintf("+62%d", timestamp),
 		}
-		err = suite.courierRepository.Create(context, newCourier2, tx)
+		_, err = suite.courierRepository.Create(context, courier2, tx)
 
 		return err
 	})
@@ -144,7 +144,7 @@ func (suite *CourierRepositoryTestSuite) TestSaveCourierWithoutTx() {
 		roleId, err := suite.courierRepository.FindRoleCourier(context, model.RoleCourier, nil)
 		assert.NoError(suite.T(), err)
 
-		newCourier1 := &entity.Courier{
+		courier := &entity.Courier{
 			Name:     "John Doe",
 			Email:    fmt.Sprintf("%d@email.com", timestamp),
 			RoleID:   int(roleId),
@@ -152,9 +152,9 @@ func (suite *CourierRepositoryTestSuite) TestSaveCourierWithoutTx() {
 			Phone:    fmt.Sprintf("+62%d", timestamp),
 		}
 
-		err = suite.courierRepository.Create(context, newCourier1, nil)
+		newCourier, err := suite.courierRepository.Create(context, courier, nil)
 		assert.NoError(suite.T(), err)
-		assert.NotZero(suite.T(), newCourier1.ID)
+		assert.NotZero(suite.T(), newCourier.ID)
 
 		return err
 	})

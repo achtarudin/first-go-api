@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"cutbray/first_api/domain/auth/entity"
+	"cutbray/first_api/infra"
 	"cutbray/first_api/pkg/model"
 	"errors"
 
@@ -19,10 +20,10 @@ type AuthRepository interface {
 }
 
 type authRepository struct {
-	db *gorm.DB
+	db *infra.Database
 }
 
-func NewAuthRepository(db *gorm.DB) AuthRepository {
+func NewAuthRepository(db *infra.Database) AuthRepository {
 	return &authRepository{
 		db: db,
 	}
@@ -36,7 +37,7 @@ func (a *authRepository) Delete(ctx context.Context, id string) error {
 // FindByEmail implements AuthRepository.
 func (a *authRepository) FindByEmail(ctx context.Context, user *entity.User) (*entity.User, error) {
 	var userModel model.User
-	if err := a.db.WithContext(ctx).First(&userModel, "email = ?", user.Email).Error; err != nil {
+	if err := a.db.DB.WithContext(ctx).First(&userModel, "email = ?", user.Email).Error; err != nil {
 		return nil, err
 	}
 
@@ -48,7 +49,7 @@ func (a *authRepository) FindByEmail(ctx context.Context, user *entity.User) (*e
 // FindById implements AuthRepository.
 func (a *authRepository) FindById(ctx context.Context, id string) (*entity.User, error) {
 	var user entity.User
-	if err := a.db.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
+	if err := a.db.DB.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -67,7 +68,7 @@ func (a *authRepository) Save(ctx context.Context, user *entity.User, hashPasswo
 	userModel.Password = hashPassword
 
 	// Create a single record
-	result := a.db.WithContext(ctx).Create(&userModel)
+	result := a.db.DB.WithContext(ctx).Create(&userModel)
 
 	if result.Error != nil {
 		// Cek error duplikat dari MySQL

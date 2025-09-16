@@ -36,6 +36,12 @@ func (suite *JwtTokenTestSuite) TestGenerateJwtToken() {
 	assert.NotEmpty(suite.T(), tokenString)
 }
 
+func (suite *JwtTokenTestSuite) TestGenerateJwtTokenFromIdAndEmail() {
+	tokenString, err := GenerateTokenFromIdAndEmail(suite.User.ID, suite.User.Email)
+	assert.NoError(suite.T(), err)
+	assert.NotEmpty(suite.T(), tokenString)
+}
+
 func (suite *JwtTokenTestSuite) TestVerifyJwtToken() {
 	tokenString, _ := GenerateToken(suite.User)
 	jwtToken, err := VerifyToken(tokenString)

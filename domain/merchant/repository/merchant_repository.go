@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"cutbray/first_api/domain/merchant/entity"
+	"cutbray/first_api/infra"
 	"cutbray/first_api/pkg/model"
 	"errors"
 	"fmt"
@@ -17,10 +18,10 @@ type MerchantRepository interface {
 }
 
 type merchantRepository struct {
-	db *gorm.DB
+	db *infra.Database
 }
 
-func NewMerchantRepository(db *gorm.DB) MerchantRepository {
+func NewMerchantRepository(db *infra.Database) MerchantRepository {
 	return &merchantRepository{
 		db: db,
 	}
@@ -28,38 +29,15 @@ func NewMerchantRepository(db *gorm.DB) MerchantRepository {
 
 // Ini bisa jadi method di BaseRepository atau struct DB wrapper Anda
 func (c *merchantRepository) Trx(ctx context.Context, fn func(tx *gorm.DB) error) error {
-	// 1. Mulai transaksi
-	tx := c.db.WithContext(ctx).Begin()
-
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	// 2. Siapkan defer untuk panic recovery
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	err := fn(tx)
-	if err != nil {
-
-		if roolbackError := tx.Rollback().Error; roolbackError != nil {
-			return fmt.Errorf("tx err: %v, rb err: %v", err, roolbackError)
-		}
-
-		return err
-	}
-
-	// 4. Jika closure berhasil, Commit
-	return tx.Commit().Error
+	return c.db.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return fn(tx)
+	})
 }
 
 func (c *merchantRepository) Create(context context.Context, merchant *entity.UserMerchant, tx *gorm.DB) error {
 
 	if tx == nil {
-		tx = c.db.WithContext(context)
+		tx = c.db.DB.WithContext(context)
 	}
 
 	user := model.User{
@@ -80,7 +58,7 @@ func (c *merchantRepository) Create(context context.Context, merchant *entity.Us
 func (c *merchantRepository) FindRoleMerchant(ctx context.Context, roleName model.RoleStatus, tx *gorm.DB) (uint, error) {
 
 	if tx == nil {
-		tx = c.db.WithContext(ctx)
+		tx = c.db.DB.WithContext(ctx)
 	}
 
 	var roleModel model.Role

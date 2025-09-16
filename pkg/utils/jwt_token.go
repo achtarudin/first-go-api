@@ -21,6 +21,13 @@ func GenerateToken(user *entity.User) (string, error) {
 	return token.SignedString(HmacSampleSecret)
 }
 
+func GenerateTokenFromIdAndEmail(id int, email string) (string, error) {
+	return GenerateToken(&entity.User{
+		ID:    id,
+		Email: email,
+	})
+}
+
 func VerifyToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		return HmacSampleSecret, nil

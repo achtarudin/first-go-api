@@ -63,10 +63,25 @@ func (h *courierHandler) Login(c *gin.Context) {
 		return
 	}
 
+	courier := json.ToCourierLogin()
+	courierResult, err := h.usecase.Login(c, &courier, utils.VerifyPassword)
+
+	// If error occurs during usecase execution, return error response
+	if err != nil {
+		c.JSON(http.StatusNotFound, response.BindErrorResponse{
+			Status:  http.StatusNotFound,
+			Message: "Not Found",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Login success",
-		Data:    []any{},
+		Data:    courierResult,
 	})
 }
 
@@ -105,9 +120,23 @@ func (h *courierHandler) Register(c *gin.Context) {
 		return
 	}
 
+	courier := json.ToCourierRegister()
+	createdCourier, err := h.usecase.Register(c, &courier, utils.HashPassword)
+
+	// If error occurs during usecase execution, return error response
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
+			Status:  http.StatusUnprocessableEntity,
+			Message: "Validation failed",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Register success",
-		Data:    []any{},
+		Data:    createdCourier,
 	})
 }

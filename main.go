@@ -82,10 +82,12 @@ func main() {
 	{
 		// Initialize API group
 		api := server.Group("/api")
-
+		checkRoleMiddleware := middleware.NewCheckRoleRepository(db)
+		api.Use(checkRoleMiddleware.IsMerchant())
+		api.Use(checkRoleMiddleware.IsCourier())
 		// Initialize auth
 		{
-			repoAuth := authRepo.NewAuthRepository(db.DB)
+			repoAuth := authRepo.NewAuthRepository(db)
 			usecaseAuth := authUsecase.NewAuthUsecase(repoAuth)
 			authHandler := auth.NewAuthHandler(api, usecaseAuth, validate)
 			authHandler.RegisterRoute()
@@ -93,7 +95,7 @@ func main() {
 
 		// Initialize courier
 		{
-			courierRepo := courierRepo.NewCourierRepository(db.DB)
+			courierRepo := courierRepo.NewCourierRepository(db)
 			usecaseCourier := courierUsecase.NewCourierUsecase(courierRepo)
 			courierHandler := courier.NewCourierHandler(api, usecaseCourier, validate)
 			courierHandler.RegisterRoute()
@@ -101,7 +103,7 @@ func main() {
 
 		// Initialize merchant
 		{
-			merchantRepo := merchantRepo.NewMerchantRepository(db.DB)
+			merchantRepo := merchantRepo.NewMerchantRepository(db)
 			usecaseMerchant := merchantUsecase.NewMerchantUsecase(merchantRepo)
 			merchantHandler := merchant.NewMerchantHandler(api, usecaseMerchant, validate)
 			merchantHandler.RegisterRoute()

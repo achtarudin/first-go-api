@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"cutbray/first_api/domain/courier/entity"
+	"cutbray/first_api/infra"
 	"cutbray/first_api/pkg/model"
 	"errors"
 	"fmt"
@@ -12,15 +13,16 @@ import (
 
 type CourierRepository interface {
 	Trx(ctx context.Context, clouseure func(tx *gorm.DB) error) error
-	Create(ctx context.Context, courier *entity.Courier, tx *gorm.DB) error
+	Create(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error)
 	FindRoleCourier(ctx context.Context, roleName model.RoleStatus, tx *gorm.DB) (uint, error)
+	FindByEmail(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error)
 }
 
 type courierRepository struct {
-	db *gorm.DB
+	db *infra.Database
 }
 
-func NewCourierRepository(db *gorm.DB) CourierRepository {
+func NewCourierRepository(db *infra.Database) CourierRepository {
 	return &courierRepository{
 		db: db,
 	}
@@ -28,41 +30,18 @@ func NewCourierRepository(db *gorm.DB) CourierRepository {
 
 // Ini bisa jadi method di BaseRepository atau struct DB wrapper Anda
 func (c *courierRepository) Trx(ctx context.Context, fn func(tx *gorm.DB) error) error {
-	// 1. Mulai transaksi
-	tx := c.db.WithContext(ctx).Begin()
-
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	// 2. Siapkan defer untuk panic recovery
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	err := fn(tx)
-	if err != nil {
-
-		if roolbackError := tx.Rollback().Error; roolbackError != nil {
-			return fmt.Errorf("tx err: %v, rb err: %v", err, roolbackError)
-		}
-
-		return err
-	}
-
-	// 4. Jika closure berhasil, Commit
-	return tx.Commit().Error
+	return c.db.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return fn(tx)
+	})
 }
 
-func (c *courierRepository) Create(context context.Context, courier *entity.Courier, tx *gorm.DB) error {
+func (c *courierRepository) Create(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error) {
 
 	if tx == nil {
-		tx = c.db.WithContext(context)
+		tx = c.db.DB.WithContext(ctx)
 	}
 
-	user := model.User{
+	userModel := model.User{
 		Name:     courier.Name,
 		Email:    courier.Email,
 		Password: courier.Password,
@@ -70,19 +49,29 @@ func (c *courierRepository) Create(context context.Context, courier *entity.Cour
 		Courier:  model.Courier{Phone: courier.Phone},
 	}
 
-	if err := tx.Create(&user).Error; err != nil {
-		return err
+	result := tx.Create(&userModel)
+
+	if result.Error != nil {
+		// Cek error duplikat dari MySQL
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return nil, errors.New("email already exists")
+		}
+		return nil, result.Error
 	}
 
-	courier.ID = int(user.ID)
-
-	return nil
+	createdCourier := &entity.Courier{
+		ID:    int(userModel.ID),
+		Name:  userModel.Name,
+		Email: userModel.Email,
+		Phone: userModel.Courier.Phone,
+	}
+	return createdCourier, nil
 }
 
 func (c *courierRepository) FindRoleCourier(ctx context.Context, roleName model.RoleStatus, tx *gorm.DB) (uint, error) {
 
 	if tx == nil {
-		tx = c.db.WithContext(ctx)
+		tx = c.db.DB.WithContext(ctx)
 	}
 	var roleModel model.Role
 	result := tx.First(&roleModel, "name = ?", roleName)
@@ -96,4 +85,39 @@ func (c *courierRepository) FindRoleCourier(ctx context.Context, roleName model.
 	}
 
 	return roleModel.ID, nil
+}
+
+func (c *courierRepository) FindByEmail(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error) {
+
+	if tx == nil {
+		tx = c.db.DB.WithContext(ctx)
+	}
+
+	var userModel model.User
+
+	// Subquery untuk mendapatkan user_id dari user_roles dengan role courier
+	subQuery := tx.
+		Table("user_roles").
+		Select("user_roles.user_id").
+		Where("role_id = ?", courier.RoleID)
+
+	// Cari user dengan email dan role courier
+	result := tx.Where("email = ?", courier.Email).
+		Where("id IN (?)", subQuery).
+		Where("id IN (?)", tx.Model(&model.Courier{}).Select("user_id")).
+		Preload("Courier").Preload("Roles").First(&userModel)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, errors.New("user not found")
+	}
+
+	foundCourier := &entity.Courier{
+		ID:       int(userModel.ID),
+		Name:     userModel.Name,
+		Email:    userModel.Email,
+		Phone:    userModel.Courier.Phone,
+		Password: userModel.Password,
+	}
+
+	return foundCourier, nil
 }
