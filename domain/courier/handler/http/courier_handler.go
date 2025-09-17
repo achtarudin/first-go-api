@@ -28,6 +28,12 @@ func NewCourierHandler(router *gin.RouterGroup, usecase usecase.CourierUsecase, 
 func (h *courierHandler) RegisterRoute() {
 	h.router.POST("/couriers/login", h.Login)
 	h.router.POST("/couriers/register", h.Register)
+	h.router.GET("/couriers/get-all", h.GetAllCouriers)
+	h.router.GET("/couriers/get-by-lat-long", h.GetCourierByLatLong)
+	h.router.GET("/couriers/find-nearest", h.FindNearestCourier)
+	h.router.PUT("/couriers/update", h.Update)
+	h.router.DELETE("/couriers/delete", h.Delete)
+
 }
 
 // Login godoc
@@ -138,5 +144,136 @@ func (h *courierHandler) Register(c *gin.Context) {
 		Status:  http.StatusOK,
 		Message: "Register success",
 		Data:    createdCourier,
+	})
+}
+
+// GetAllCouriers godoc
+//
+//	@Summary	Get all couriers
+//	@Tags		Couriers
+//	@Accept		json
+//	@Param		name		query	string	false	"search by name"
+//	@Param		email		query	string	false	"search by email"
+//	@Param		per_page	query	int		false	"per page"	default(10)
+//	@Param		page		query	int		false	"page"		default(1)
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/couriers/get-all [get]
+func (h *courierHandler) GetAllCouriers(c *gin.Context) {
+
+	searchParams := map[string]string{
+		"name":    c.DefaultQuery("name", ""),
+		"email":   c.DefaultQuery("email", ""),
+		"perPage": c.DefaultQuery("per_page", "10"),
+		"page":    c.DefaultQuery("page", "1"),
+	}
+
+	result, err := h.usecase.GetAllCouriers(c, searchParams)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Internal Server Error",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Get all couriers success",
+		Data:    result,
+	})
+}
+
+// GetCourierByLatLong godoc
+//
+//	@Summary	Get all couriers
+//	@Tags		Couriers
+//	@Accept		json
+//	@Param		latitude	query	string	false	"search by latitude"
+//	@Param		longitude	query	string	false	"search by longitude"
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/couriers/get-by-lat-long [get]
+func (h *courierHandler) GetCourierByLatLong(c *gin.Context) {
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Get courier by latitude and longitude success",
+	})
+}
+
+// FindNearestCourier godoc
+//
+//	@Summary	Get all couriers
+//	@Tags		Couriers
+//	@Accept		json
+//	@Param		latitude	query	string	false	"search by latitude"
+//	@Param		longitude	query	string	false	"search by longitude"
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/couriers/find-nearest [get]
+func (h *courierHandler) FindNearestCourier(c *gin.Context) {
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Get nearest courier success",
+	})
+}
+
+// Update godoc
+//
+//	@Summary	Update a courier
+//	@Tags		Couriers
+//	@Accept		json
+//	@Param		payload	body	request.RegisterRequest	true	"json type"
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/couriers/update [put]
+func (h *courierHandler) Update(c *gin.Context) {
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Update courier success",
+	})
+}
+
+// Update godoc
+//
+//	@Summary	Update a courier
+//	@Tags		Couriers
+//	@Accept		json
+//	@Param		payload	body	request.RegisterRequest	true	"json type"
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/couriers/delete [delete]
+func (h *courierHandler) Delete(c *gin.Context) {
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Delete courier success",
 	})
 }

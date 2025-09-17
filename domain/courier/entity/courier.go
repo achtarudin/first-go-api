@@ -11,3 +11,10 @@ type Courier struct {
 	Latitude  float64 `json:"latitude,omitempty"`
 	Longitude float64 `json:"longitude,omitempty"`
 }
+
+type CourierWithPaginate[T any] struct {
+	CurrentPage int   `json:"current_page"`
+	Data        []T   `json:"data"`
+	PerPage     int   `json:"per_page"`
+	Total       int64 `json:"total"`
+}

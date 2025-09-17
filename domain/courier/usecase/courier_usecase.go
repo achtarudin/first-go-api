@@ -16,6 +16,7 @@ type verifyPasswordFunc func(password string, hash string) bool
 type CourierUsecase interface {
 	Login(ctx context.Context, courier *entity.Courier, verifyPassword verifyPasswordFunc) (*entity.Courier, error)
 	Register(ctx context.Context, courier *entity.Courier, hashPassword hashPasswordFunc) (*entity.Courier, error)
+	GetAllCouriers(ctx context.Context, searchParams map[string]string) (*entity.CourierWithPaginate[entity.Courier], error)
 }
 
 type courierUsecase struct {
@@ -104,4 +105,14 @@ func (c *courierUsecase) Register(ctx context.Context, courier *entity.Courier, 
 	})
 	return createdCourier, err
 
+}
+
+func (c *courierUsecase) GetAllCouriers(ctx context.Context, searchParams map[string]string) (*entity.CourierWithPaginate[entity.Courier], error) {
+
+	result, err := c.repo.ReadAll(ctx, searchParams, nil)
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

@@ -7,6 +7,7 @@ import (
 	"cutbray/first_api/pkg/model"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +17,7 @@ type CourierRepository interface {
 	Create(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error)
 	FindRoleCourier(ctx context.Context, roleName model.RoleStatus, tx *gorm.DB) (uint, error)
 	FindByEmail(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error)
+	ReadAll(ctx context.Context, searchParams map[string]string, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
 }
 
 type courierRepository struct {
@@ -107,8 +109,11 @@ func (c *courierRepository) FindByEmail(ctx context.Context, courier *entity.Cou
 		Where("id IN (?)", tx.Model(&model.Courier{}).Select("user_id")).
 		Preload("Courier").Preload("Roles").First(&userModel)
 
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, errors.New("user not found")
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found") // Pesan error bisa disesuaikan
+		}
+		return nil, result.Error // Kembalikan error database lainnya
 	}
 
 	foundCourier := &entity.Courier{
@@ -120,4 +125,89 @@ func (c *courierRepository) FindByEmail(ctx context.Context, courier *entity.Cou
 	}
 
 	return foundCourier, nil
+}
+
+func (c *courierRepository) ReadAll(ctx context.Context, searchParams map[string]string, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error) {
+
+	if tx == nil {
+		tx = c.db.DB.WithContext(ctx)
+	}
+
+	roleId, err := c.FindRoleCourier(ctx, "courier", tx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Subquery untuk mendapatkan user_id dari user_roles dengan role courier
+	subQuery := tx.
+		Table("user_roles").
+		Select("user_roles.user_id").
+		Where("role_id = ?", roleId)
+
+	// Query utama untuk mendapatkan semua courier dengan filter dan pagination
+	query := tx.Where("id IN (?)", tx.Model(&model.Courier{}).Select("user_id")).
+		Where("id IN (?)", subQuery)
+
+	// Filter by name
+	if name, exists := searchParams["name"]; exists && name != "" {
+		query = query.Where("name LIKE ?", "%"+name+"%")
+	}
+
+	// Filter by email
+	if email, exists := searchParams["email"]; exists && email != "" {
+		query = query.Where("email LIKE ?", "%"+email+"%")
+	}
+
+	// Pagination
+	perPageApp := 10
+	if perPageStr, exists := searchParams["perPage"]; exists && perPageStr != "" {
+		perPage, err := strconv.Atoi(perPageStr)
+		if err == nil {
+			perPageApp = perPage
+		}
+	}
+
+	// Default page is 1
+	currentPage := 1
+	if pageStr, exists := searchParams["page"]; exists && pageStr != "" {
+		page, err := strconv.Atoi(pageStr)
+		if err == nil {
+			currentPage = page
+		}
+	}
+
+	// Get total count before applying limit and offset
+	var total int64
+	if err := query.Model(&model.User{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Calculate offset for pagination
+	offset := (currentPage - 1) * perPageApp
+
+	// Execute query with pagination
+	var userModel []model.User
+	if err := query.Limit(perPageApp).Offset(offset).Preload("Courier").Find(&userModel).Error; err != nil {
+		return nil, err
+	}
+
+	// Map userModel to entity.Courier
+	couriers := make([]entity.Courier, 0, len(userModel))
+	for _, user := range userModel {
+		courier := entity.Courier{
+			ID:    int(user.ID),
+			Name:  user.Name,
+			Email: user.Email,
+			Phone: user.Courier.Phone,
+		}
+		couriers = append(couriers, courier)
+	}
+
+	result := &entity.CourierWithPaginate[entity.Courier]{
+		CurrentPage: currentPage,
+		Data:        couriers,
+		PerPage:     perPageApp,
+		Total:       total,
+	}
+	return result, nil
 }

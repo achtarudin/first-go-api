@@ -253,6 +253,170 @@ paths:
           description: Internal Server Error
       tags:
       - Auth
+  /api/couriers/delete:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cutbray_first_api_domain_courier_handler_request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Update a courier
+      tags:
+      - Couriers
+  /api/couriers/find-nearest:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: search by latitude
+        in: query
+        name: latitude
+        type: string
+      - description: search by longitude
+        in: query
+        name: longitude
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Get all couriers
+      tags:
+      - Couriers
+  /api/couriers/get-all:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: search by name
+        in: query
+        name: name
+        type: string
+      - description: search by email
+        in: query
+        name: email
+        type: string
+      - default: 10
+        description: per page
+        in: query
+        name: per_page
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Get all couriers
+      tags:
+      - Couriers
+  /api/couriers/get-by-lat-long:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: search by latitude
+        in: query
+        name: latitude
+        type: string
+      - description: search by longitude
+        in: query
+        name: longitude
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Get all couriers
+      tags:
+      - Couriers
   /api/couriers/login:
     post:
       consumes:
@@ -325,6 +489,43 @@ paths:
         "500":
           description: Internal Server Error
       summary: Register a new courier
+      tags:
+      - Couriers
+  /api/couriers/update:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: json type
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cutbray_first_api_domain_courier_handler_request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Update a courier
       tags:
       - Couriers
   /api/merchants/login:
