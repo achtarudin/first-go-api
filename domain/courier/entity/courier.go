@@ -1,15 +1,16 @@
 package entity
 
 type Courier struct {
-	ID        int     `json:"id"`
-	RoleID    int     `json:"role_id,omitempty"`
-	Name      string  `json:"name"`
-	Email     string  `json:"email"`
-	Password  string  `json:"password,omitempty"`
-	Token     string  `json:"token,omitempty"`
-	Phone     string  `json:"phone"`
-	Latitude  float64 `json:"latitude,omitempty"`
-	Longitude float64 `json:"longitude,omitempty"`
+	ID               int     `json:"id"`
+	RoleId           int     `json:"role_id,omitempty"`
+	Name             string  `json:"name"`
+	Email            string  `json:"email"`
+	Password         string  `json:"password,omitempty"`
+	Token            string  `json:"token,omitempty"`
+	Phone            string  `json:"phone"`
+	Longitude        float64 `json:"longitude"`
+	Latitude         float64 `json:"latitude"`
+	DistanceInMeters float64 `json:"distance_in_meters"`
 }
 
 type CourierWithPaginate[T any] struct {

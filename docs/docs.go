@@ -348,6 +348,27 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "default": "106.8260",
+                        "description": "search by longitude",
+                        "name": "longitude",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "-6.1790",
+                        "description": "search by latitude",
+                        "name": "latitude",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 100,
+                        "description": "radius in meter",
+                        "name": "radius",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "default": 10,
                         "description": "per page",
@@ -359,6 +380,20 @@ const docTemplate = `{
                         "default": 1,
                         "description": "page",
                         "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "id",
+                        "description": "sort by (id, distance_in_meters)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "ASC",
+                        "description": "order by (ASC , DESC)",
+                        "name": "order_by",
                         "in": "query"
                     }
                 ],
@@ -400,7 +435,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/couriers/get-by-lat-long": {
+        "/api/couriers/get-by-long-lat": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -415,14 +450,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "search by latitude",
-                        "name": "latitude",
+                        "description": "search by longitude",
+                        "name": "longitude",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "search by longitude",
-                        "name": "longitude",
+                        "description": "search by latitude",
+                        "name": "latitude",
                         "in": "query"
                     }
                 ],

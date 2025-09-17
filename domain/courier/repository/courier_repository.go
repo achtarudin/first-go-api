@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -52,7 +53,7 @@ func (c *courierRepository) Create(ctx context.Context, courier *entity.Courier,
 		Name:     courier.Name,
 		Email:    courier.Email,
 		Password: courier.Password,
-		Roles:    []*model.Role{{ID: uint(courier.RoleID)}},
+		Roles:    []*model.Role{{ID: uint(courier.RoleId)}},
 		Courier: model.Courier{Phone: courier.Phone,
 			Longitude: &defaultLocation.Lng,
 			Latitude:  &defaultLocation.Lat,
@@ -110,7 +111,7 @@ func (c *courierRepository) FindByEmail(ctx context.Context, courier *entity.Cou
 	subQuery := tx.
 		Table("user_roles").
 		Select("user_roles.user_id").
-		Where("role_id = ?", courier.RoleID)
+		Where("role_id = ?", courier.RoleId)
 
 	// Cari user dengan email dan role courier
 	result := tx.Where("email = ?", courier.Email).
@@ -137,46 +138,76 @@ func (c *courierRepository) FindByEmail(ctx context.Context, courier *entity.Cou
 }
 
 func (c *courierRepository) ReadAll(ctx context.Context, searchParams map[string]string, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error) {
-
 	if tx == nil {
 		tx = c.db.DB.WithContext(ctx)
 	}
 
-	roleId, err := c.FindRoleCourier(ctx, "courier", tx)
+	roleId, err := c.FindRoleCourier(ctx, "courier", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Subquery untuk mendapatkan user_id dari user_roles dengan role courier
-	subQuery := tx.
-		Table("user_roles").
-		Select("user_roles.user_id").
-		Where("role_id = ?", roleId)
+	// Bangun query dasar yang efisien dengan JOIN
+	query := tx.Model(&model.User{}).
+		Joins("JOIN user_roles ON user_roles.user_id = users.id").
+		Joins("JOIN couriers ON couriers.user_id = users.id").
+		Where("user_roles.role_id = ?", roleId).
+		Where("latitude IS NOT NULL AND longitude IS NOT NULL")
 
-	// Query utama untuk mendapatkan semua courier dengan filter dan pagination
-	query := tx.Where("id IN (?)", tx.Model(&model.Courier{}).Select("user_id")).
-		Where("id IN (?)", subQuery)
+	// Kolom-kolom dasar yang selalu dipilih
+	selectParts := []string{
+		"users.id",
+		"users.name",
+		"users.email",
+		"couriers.phone",
+		"couriers.latitude",
+		"couriers.longitude",
+	}
+
+	// Argumen untuk placeholders '?'
+	var selectArgs []interface{}
 
 	// Filter by name
-	if name, exists := searchParams["name"]; exists && name != "" {
-		query = query.Where("name LIKE ?", "%"+name+"%")
+	name, exists := searchParams["name"]
+	if exists && name != "" {
+		query = query.Where("users.name LIKE ?", "%"+name+"%")
 	}
 
 	// Filter by email
-	if email, exists := searchParams["email"]; exists && email != "" {
-		query = query.Where("email LIKE ?", "%"+email+"%")
+	email, exists := searchParams["email"]
+	if exists && email != "" {
+		query = query.Where("users.email LIKE ?", "%"+email+"%")
 	}
 
-	// Pagination
-	perPageApp := 10
+	// Filter by latitude and longitude to calculate distance
+	lonStr, lonExists := searchParams["longitude"]
+	latStr, latExists := searchParams["latitude"]
+
+	if lonExists && latExists && lonStr != "" && latStr != "" {
+		lon, errLon := strconv.ParseFloat(lonStr, 64)
+		lat, errLat := strconv.ParseFloat(latStr, 64)
+
+		if errLat == nil && errLon == nil {
+			selectParts = append(selectParts, "ST_Distance_Sphere(POINT(?, ?), couriers.location) AS distance_in_meters")
+			selectArgs = append(selectArgs, lon, lat)
+		} else {
+			// Jika parsing gagal (input tidak valid), beri nilai NULL
+			selectParts = append(selectParts, "NULL AS distance_in_meters")
+		}
+	} else {
+		selectParts = append(selectParts, "NULL AS distance_in_meters")
+	}
+
+	// Default values for pagination
+	paginate := 10
 	if perPageStr, exists := searchParams["perPage"]; exists && perPageStr != "" {
 		perPage, err := strconv.Atoi(perPageStr)
 		if err == nil {
-			perPageApp = perPage
+			paginate = perPage
 		}
 	}
 
-	// Default page is 1
+	// Default values for current page
 	currentPage := 1
 	if pageStr, exists := searchParams["page"]; exists && pageStr != "" {
 		page, err := strconv.Atoi(pageStr)
@@ -185,38 +216,38 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams map[string
 		}
 	}
 
-	// Get total count before applying limit and offset
+	// Hitung total data
 	var total int64
-	if err := query.Model(&model.User{}).Count(&total).Error; err != nil {
+	if err := query.Count(&total).Error; err != nil {
 		return nil, err
 	}
 
-	// Calculate offset for pagination
-	offset := (currentPage - 1) * perPageApp
+	// Calculate offset
+	offset := (currentPage - 1) * paginate
 
-	// Execute query with pagination
-	var userModel []model.User
-	if err := query.Limit(perPageApp).Offset(offset).Preload("Courier").Find(&userModel).Error; err != nil {
+	// Siapkan variabel untuk menampung hasil
+	var results []entity.Courier
+
+	// Gabungkan bagian-bagian SELECT menjadi satu string
+	selectStatement := strings.Join(selectParts, ", ")
+
+	// Eksekusi query dengan SELECT, LIMIT, OFFSET, dan ORDER BY
+	err = query.Select(selectStatement, selectArgs...).
+		Limit(paginate).
+		Offset(offset).
+		Order("distance_in_meters ASC").
+		// Having("distance_in_meters <= 50").
+		Scan(&results).Error
+
+	if err != nil {
 		return nil, err
 	}
 
-	// Map userModel to entity.Courier
-	couriers := make([]entity.Courier, 0, len(userModel))
-	for _, user := range userModel {
-		courier := entity.Courier{
-			ID:    int(user.ID),
-			Name:  user.Name,
-			Email: user.Email,
-			Phone: user.Courier.Phone,
-		}
-		couriers = append(couriers, courier)
-	}
-
-	result := &entity.CourierWithPaginate[entity.Courier]{
+	response := &entity.CourierWithPaginate[entity.Courier]{
 		CurrentPage: currentPage,
-		Data:        couriers,
-		PerPage:     perPageApp,
+		Data:        results,
+		PerPage:     paginate,
 		Total:       total,
 	}
-	return result, nil
+	return response, nil
 }

@@ -44,7 +44,7 @@ func (c *courierUsecase) Login(ctx context.Context, courier *entity.Courier, ver
 			return txErr
 		}
 		// Find courier by email
-		courier.RoleID = int(roleId)
+		courier.RoleId = int(roleId)
 		foundCourier, txErr = c.repo.FindByEmail(ctx, courier, txCtx)
 		if txErr != nil {
 			return txErr
@@ -94,7 +94,7 @@ func (c *courierUsecase) Register(ctx context.Context, courier *entity.Courier, 
 		}
 
 		// Create courier
-		courier.RoleID = int(roleId)
+		courier.RoleId = int(roleId)
 		createdCourier, txErr = c.repo.Create(ctx, courier, txCtx)
 
 		if txErr != nil {

@@ -42,14 +42,15 @@ func (p *Point) Scan(value interface{}) error {
 	}
 
 	s, ok := value.([]byte)
+
 	if !ok {
-		return fmt.Errorf("gagal scan, tipe tidak valid: %T", value)
+		return fmt.Errorf("gagal scan Point, tipe tidak valid: %T", value)
 	}
 
-	// Parsing string "POINT(lng lat)"
 	fmt.Println(string(s))
-	_, err := fmt.Sscanf(string(s), "POINT(%f %f)", &p.Lng, &p.Lat)
-	return err
+
+	return nil
+
 }
 
 // Courier represents the couriers table

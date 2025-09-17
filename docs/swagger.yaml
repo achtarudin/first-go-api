@@ -342,6 +342,21 @@ paths:
         in: query
         name: email
         type: string
+      - default: "106.8260"
+        description: search by longitude
+        in: query
+        name: longitude
+        type: string
+      - default: "-6.1790"
+        description: search by latitude
+        in: query
+        name: latitude
+        type: string
+      - default: 100
+        description: radius in meter
+        in: query
+        name: radius
+        type: integer
       - default: 10
         description: per page
         in: query
@@ -352,6 +367,16 @@ paths:
         in: query
         name: page
         type: integer
+      - default: id
+        description: sort by (id, distance_in_meters)
+        in: query
+        name: sort_by
+        type: string
+      - default: ASC
+        description: order by (ASC , DESC)
+        in: query
+        name: order_by
+        type: string
       produces:
       - application/json
       responses:
@@ -378,18 +403,18 @@ paths:
       summary: Get all couriers
       tags:
       - Couriers
-  /api/couriers/get-by-lat-long:
+  /api/couriers/get-by-long-lat:
     get:
       consumes:
       - application/json
       parameters:
-      - description: search by latitude
-        in: query
-        name: latitude
-        type: string
       - description: search by longitude
         in: query
         name: longitude
+        type: string
+      - description: search by latitude
+        in: query
+        name: latitude
         type: string
       produces:
       - application/json

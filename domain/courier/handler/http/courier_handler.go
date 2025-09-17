@@ -29,7 +29,7 @@ func (h *courierHandler) RegisterRoute() {
 	h.router.POST("/couriers/login", h.Login)
 	h.router.POST("/couriers/register", h.Register)
 	h.router.GET("/couriers/get-all", h.GetAllCouriers)
-	h.router.GET("/couriers/get-by-lat-long", h.GetCourierByLatLong)
+	h.router.GET("/couriers/get-by-long-lat", h.GetCourierByLongLat)
 	h.router.GET("/couriers/find-nearest", h.FindNearestCourier)
 	h.router.PUT("/couriers/update", h.Update)
 	h.router.DELETE("/couriers/delete", h.Delete)
@@ -154,8 +154,13 @@ func (h *courierHandler) Register(c *gin.Context) {
 //	@Accept		json
 //	@Param		name		query	string	false	"search by name"
 //	@Param		email		query	string	false	"search by email"
-//	@Param		per_page	query	int		false	"per page"	default(10)
-//	@Param		page		query	int		false	"page"		default(1)
+//	@Param		longitude	query	string	false	"search by longitude"				default(106.8260)
+//	@Param		latitude	query	string	false	"search by latitude"				default(-6.1790)
+//	@Param		radius		query	int		false	"radius in meter"					default(100)
+//	@Param		per_page	query	int		false	"per page"							default(10)
+//	@Param		page		query	int		false	"page"								default(1)
+//	@Param		sort_by		query	string	false	"sort by (id, distance_in_meters)"	default(id)
+//	@Param		order_by	query	string	false	"order by (ASC , DESC)"				default(ASC)
 //	@Produce	json
 //	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success	201
@@ -167,10 +172,15 @@ func (h *courierHandler) Register(c *gin.Context) {
 func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 
 	searchParams := map[string]string{
-		"name":    c.DefaultQuery("name", ""),
-		"email":   c.DefaultQuery("email", ""),
-		"perPage": c.DefaultQuery("per_page", "10"),
-		"page":    c.DefaultQuery("page", "1"),
+		"name":      c.DefaultQuery("name", ""),
+		"email":     c.DefaultQuery("email", ""),
+		"longitude": c.DefaultQuery("longitude", ""),
+		"latitude":  c.DefaultQuery("latitude", ""),
+		"radius":    c.DefaultQuery("radius", "100"),
+		"perPage":   c.DefaultQuery("per_page", "10"),
+		"page":      c.DefaultQuery("page", "1"),
+		"sort":      c.DefaultQuery("sort", "id"),
+		"order":     c.DefaultQuery("order", "asc"),
 	}
 
 	result, err := h.usecase.GetAllCouriers(c, searchParams)
@@ -192,13 +202,13 @@ func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 	})
 }
 
-// GetCourierByLatLong godoc
+// GetCourierByLongLat godoc
 //
 //	@Summary	Get all couriers
 //	@Tags		Couriers
 //	@Accept		json
-//	@Param		latitude	query	string	false	"search by latitude"
 //	@Param		longitude	query	string	false	"search by longitude"
+//	@Param		latitude	query	string	false	"search by latitude"
 //	@Produce	json
 //	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success	201
@@ -206,11 +216,11 @@ func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 //	@Failure	404
 //	@Failure	422
 //	@Failure	500
-//	@Router		/api/couriers/get-by-lat-long [get]
-func (h *courierHandler) GetCourierByLatLong(c *gin.Context) {
+//	@Router		/api/couriers/get-by-long-lat [get]
+func (h *courierHandler) GetCourierByLongLat(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
-		Message: "Get courier by latitude and longitude success",
+		Message: "Get courier by longitude and latitude success",
 	})
 }
 
