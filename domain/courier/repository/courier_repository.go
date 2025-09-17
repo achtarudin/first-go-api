@@ -43,12 +43,21 @@ func (c *courierRepository) Create(ctx context.Context, courier *entity.Courier,
 		tx = c.db.DB.WithContext(ctx)
 	}
 
+	defaultLocation := model.Point{
+		Lng: courier.Longitude,
+		Lat: courier.Latitude,
+	}
+
 	userModel := model.User{
 		Name:     courier.Name,
 		Email:    courier.Email,
 		Password: courier.Password,
 		Roles:    []*model.Role{{ID: uint(courier.RoleID)}},
-		Courier:  model.Courier{Phone: courier.Phone},
+		Courier: model.Courier{Phone: courier.Phone,
+			Longitude: &defaultLocation.Lng,
+			Latitude:  &defaultLocation.Lat,
+			Location:  defaultLocation,
+		},
 	}
 
 	result := tx.Create(&userModel)
