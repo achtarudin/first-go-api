@@ -7,7 +7,6 @@ import (
 	"cutbray/first_api/pkg/model"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"gorm.io/gorm"
@@ -18,7 +17,7 @@ type CourierRepository interface {
 	Create(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error)
 	FindRoleCourier(ctx context.Context, roleName model.RoleStatus, tx *gorm.DB) (uint, error)
 	FindByEmail(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error)
-	ReadAll(ctx context.Context, searchParams map[string]string, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
+	ReadAll(ctx context.Context, searchParams *entity.SearchCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
 }
 
 type courierRepository struct {
@@ -137,7 +136,7 @@ func (c *courierRepository) FindByEmail(ctx context.Context, courier *entity.Cou
 	return foundCourier, nil
 }
 
-func (c *courierRepository) ReadAll(ctx context.Context, searchParams map[string]string, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error) {
+func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.SearchCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error) {
 	if tx == nil {
 		tx = c.db.DB.WithContext(ctx)
 	}
@@ -168,75 +167,50 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams map[string
 	var selectArgs []interface{}
 
 	// Filter by name
-	name, exists := searchParams["name"]
-	if exists && name != "" {
-		query = query.Where("users.name LIKE ?", "%"+name+"%")
+	if searchParams.Name != "" {
+		query = query.Where("users.name LIKE ?", "%"+searchParams.Name+"%")
 	}
 
 	// Filter by email
-	email, exists := searchParams["email"]
-	if exists && email != "" {
-		query = query.Where("users.email LIKE ?", "%"+email+"%")
+	if searchParams.Email != "" {
+		query = query.Where("users.email LIKE ?", "%"+searchParams.Email+"%")
 	}
 
 	// Filter by latitude and longitude to calculate distance
-	lonStr, lonExists := searchParams["longitude"]
-	latStr, latExists := searchParams["latitude"]
-
-	if lonExists && latExists && lonStr != "" && latStr != "" {
-		lon, errLon := strconv.ParseFloat(lonStr, 64)
-		lat, errLat := strconv.ParseFloat(latStr, 64)
-
-		if errLat == nil && errLon == nil {
-			selectParts = append(selectParts, "ST_Distance_Sphere(POINT(?, ?), couriers.location) AS distance_in_meters")
-			selectArgs = append(selectArgs, lon, lat)
-		} else {
-			// Jika parsing gagal (input tidak valid), beri nilai NULL
-			selectParts = append(selectParts, "NULL AS distance_in_meters")
-		}
+	hasLatLong := searchParams.Latitude != 0.0 && searchParams.Longitude != 0.0
+	if hasLatLong {
+		selectParts = append(selectParts, "ST_Distance_Sphere(POINT(?, ?), couriers.location) AS distance_in_meters")
+		selectArgs = append(selectArgs, searchParams.Longitude, searchParams.Latitude)
 	} else {
 		selectParts = append(selectParts, "NULL AS distance_in_meters")
 	}
 
-	// Default values for pagination
-	paginate := 10
-	if perPageStr, exists := searchParams["perPage"]; exists && perPageStr != "" {
-		perPage, err := strconv.Atoi(perPageStr)
-		if err == nil {
-			paginate = perPage
-		}
-	}
-
-	// Default values for current page
-	currentPage := 1
-	if pageStr, exists := searchParams["page"]; exists && pageStr != "" {
-		page, err := strconv.Atoi(pageStr)
-		if err == nil {
-			currentPage = page
-		}
-	}
-
-	// Hitung total data
+	// Gabungkan bagian-bagian SELECT menjadi satu string
+	selectStatement := strings.Join(selectParts, ", ")
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+
+	outerQuery := tx.Table("(?) AS couriers_with_distance", query.Select(selectStatement, selectArgs...))
+
+	if hasLatLong && searchParams.Radius > 0 {
+		outerQuery = outerQuery.Where("distance_in_meters <= ?", searchParams.Radius)
+	}
+
+	if err := outerQuery.Count(&total).Error; err != nil {
 		return nil, err
 	}
 
 	// Calculate offset
-	offset := (currentPage - 1) * paginate
+	offset := (searchParams.Page - 1) * searchParams.PerPage
 
 	// Siapkan variabel untuk menampung hasil
 	var results []entity.Courier
 
-	// Gabungkan bagian-bagian SELECT menjadi satu string
-	selectStatement := strings.Join(selectParts, ", ")
-
 	// Eksekusi query dengan SELECT, LIMIT, OFFSET, dan ORDER BY
-	err = query.Select(selectStatement, selectArgs...).
-		Limit(paginate).
+	fmt.Println(searchParams.SortBy, searchParams.OrderBy)
+	err = outerQuery.
+		Order(fmt.Sprintf("%s %s", searchParams.SortBy, searchParams.OrderBy)).
+		Limit(searchParams.PerPage).
 		Offset(offset).
-		Order("distance_in_meters ASC").
-		// Having("distance_in_meters <= 50").
 		Scan(&results).Error
 
 	if err != nil {
@@ -244,9 +218,9 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams map[string
 	}
 
 	response := &entity.CourierWithPaginate[entity.Courier]{
-		CurrentPage: currentPage,
+		CurrentPage: searchParams.Page,
 		Data:        results,
-		PerPage:     paginate,
+		PerPage:     searchParams.PerPage,
 		Total:       total,
 	}
 	return response, nil

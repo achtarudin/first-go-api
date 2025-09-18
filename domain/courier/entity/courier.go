@@ -19,3 +19,15 @@ type CourierWithPaginate[T any] struct {
 	PerPage     int   `json:"per_page"`
 	Total       int64 `json:"total"`
 }
+
+type SearchCourier struct {
+	Name      string
+	Email     string
+	Longitude float64
+	Latitude  float64
+	Radius    int
+	Page      int
+	PerPage   int
+	SortBy    string
+	OrderBy   string
+}

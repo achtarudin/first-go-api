@@ -3,6 +3,7 @@ package http
 import (
 	"cutbray/first_api/domain/courier/handler/request"
 	"cutbray/first_api/domain/courier/usecase"
+	"fmt"
 	"net/http"
 
 	"cutbray/first_api/pkg/response"
@@ -156,7 +157,7 @@ func (h *courierHandler) Register(c *gin.Context) {
 //	@Param		email		query	string	false	"search by email"
 //	@Param		longitude	query	string	false	"search by longitude"				default(106.8260)
 //	@Param		latitude	query	string	false	"search by latitude"				default(-6.1790)
-//	@Param		radius		query	int		false	"radius in meter"					default(100)
+//	@Param		radius		query	int		false	"radius in meter"					default(0)
 //	@Param		per_page	query	int		false	"per page"							default(10)
 //	@Param		page		query	int		false	"page"								default(1)
 //	@Param		sort_by		query	string	false	"sort by (id, distance_in_meters)"	default(id)
@@ -171,20 +172,41 @@ func (h *courierHandler) Register(c *gin.Context) {
 //	@Router		/api/couriers/get-all [get]
 func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 
-	searchParams := map[string]string{
-		"name":      c.DefaultQuery("name", ""),
-		"email":     c.DefaultQuery("email", ""),
-		"longitude": c.DefaultQuery("longitude", ""),
-		"latitude":  c.DefaultQuery("latitude", ""),
-		"radius":    c.DefaultQuery("radius", "100"),
-		"perPage":   c.DefaultQuery("per_page", "10"),
-		"page":      c.DefaultQuery("page", "1"),
-		"sort":      c.DefaultQuery("sort", "id"),
-		"order":     c.DefaultQuery("order", "asc"),
+	var query request.GetAllCourierRequest
+	// Bind query parameters to struct
+	err := c.ShouldBindQuery(&query)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Bad Request",
+		})
+		return
 	}
 
-	result, err := h.usecase.GetAllCouriers(c, searchParams)
+	fmt.Println(query.ToEntity())
+	// if query.Name == nil {
+	// 	fmt.Println("Name is nil")
+	// }
+	// fmt.Println("Name:", *query.Name)
+	// fmt.Println("Email:", *query.Email)
+	// fmt.Println("Longitude:", *query.Longitude)
+	// fmt.Println("Latitude:", *query.Latitude)
+	// fmt.Println("Radius:", *query.Radius)
 
+	// searchParams := map[string]string{
+	// 	"name":      c.DefaultQuery("name", ""),
+	// 	"email":     c.DefaultQuery("email", ""),
+	// 	"longitude": c.DefaultQuery("longitude", ""),
+	// 	"latitude":  c.DefaultQuery("latitude", ""),
+	// 	"radius":    c.DefaultQuery("radius", "100"),
+	// 	"perPage":   c.DefaultQuery("per_page", "10"),
+	// 	"page":      c.DefaultQuery("page", "1"),
+	// 	"sort":      c.DefaultQuery("sort", "id"),
+	// 	"order":     c.DefaultQuery("order", "asc"),
+	// }
+
+	result, err := h.usecase.GetAllCouriers(c, query.ToEntity())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
 			Status:  http.StatusInternalServerError,

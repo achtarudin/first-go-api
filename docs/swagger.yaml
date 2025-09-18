@@ -352,7 +352,7 @@ paths:
         in: query
         name: latitude
         type: string
-      - default: 100
+      - default: 0
         description: radius in meter
         in: query
         name: radius
