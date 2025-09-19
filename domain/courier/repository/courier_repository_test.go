@@ -90,7 +90,6 @@ func (suite *CourierRepositoryTestSuite) TestSaveCourier() {
 			Phone:    fmt.Sprintf("+62%d", timestamp),
 		}
 
-		fmt.Println("New Courier:", courier)
 		newCourier, err := suite.courierRepository.Create(context, courier, tx)
 		assert.NoError(suite.T(), err)
 		assert.NotZero(suite.T(), newCourier.ID)

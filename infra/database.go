@@ -34,7 +34,7 @@ func NewDatabase(config DatabaseConfig) (*Database, error) {
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger:         logger.Default.LogMode(logger.Info),
+		Logger:         logger.Default.LogMode(logger.Silent),
 		TranslateError: true,
 	})
 	if err != nil {
@@ -44,8 +44,8 @@ func NewDatabase(config DatabaseConfig) (*Database, error) {
 	return &Database{DB: db}, nil
 }
 
-// NewDatabaseTest creates a new in-memory SQLite database for testing
-func NewDatabaseTest() (*Database, error) {
+// NewDatabaseSqlite creates a new in-memory SQLite database for testing
+func NewDatabaseSqlite() (*Database, error) {
 
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		Logger:         logger.Default.LogMode(logger.Silent),

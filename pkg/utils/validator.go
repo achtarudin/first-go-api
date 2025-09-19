@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	id "github.com/go-playground/locales/id"
@@ -37,7 +39,6 @@ func (v *Validator) ValidateStruct(s interface{}) (errorMap map[string]string, i
 	errs := err.(validator.ValidationErrors)
 	out := make(map[string]string)
 	for _, e := range errs {
-		// Field ke lowercase jika mau
 		field := strings.ToLower(e.Field())
 		out[field] = e.Translate(v.trans)
 	}
@@ -53,8 +54,32 @@ func (v *Validator) ValidateVar(s interface{}, tag string) map[string]string {
 	errs := err.(validator.ValidationErrors)
 	out := make(map[string]string)
 	for _, e := range errs {
-		// Field ke lowercase jika mau
-		out[e.Field()] = e.Translate(v.trans)
+		field := strings.ToLower(e.Field())
+		out[field] = e.Translate(v.trans)
 	}
+	return out
+}
+
+func (v *Validator) ValidateBind(err error) map[string]string {
+	var validationErrors validator.ValidationErrors
+	out := make(map[string]string)
+	if errors.As(err, &validationErrors) {
+		for _, e := range validationErrors {
+			field := strings.ToLower(e.Field())
+
+			tags := e.Tag()
+
+			if e.Param() != "" {
+				tags = fmt.Sprintf("%s=%s", tags, e.Param())
+			}
+
+			messages := v.ValidateVar(e.Value(), tags)[""]
+			messages = fmt.Sprintf("%s%s", field, messages)
+			out[field] = messages
+		}
+	} else {
+		out["error"] = err.Error()
+	}
+
 	return out
 }

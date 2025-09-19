@@ -206,7 +206,6 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.Se
 	var results []entity.Courier
 
 	// Eksekusi query dengan SELECT, LIMIT, OFFSET, dan ORDER BY
-	fmt.Println(searchParams.SortBy, searchParams.OrderBy)
 	err = outerQuery.
 		Order(fmt.Sprintf("%s %s", searchParams.SortBy, searchParams.OrderBy)).
 		Limit(searchParams.PerPage).
