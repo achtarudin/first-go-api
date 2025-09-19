@@ -185,10 +185,13 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.Se
 		selectParts = append(selectParts, "NULL AS distance_in_meters")
 	}
 
-	// Gabungkan bagian-bagian SELECT menjadi satu string
-	selectStatement := strings.Join(selectParts, ", ")
+	// Variabel untuk menampung hasil total
 	var total int64
 
+	// Variabel untuk menampung hasil results
+	var results []entity.Courier
+
+	selectStatement := strings.Join(selectParts, ", ")
 	outerQuery := tx.Table("(?) AS couriers_with_distance", query.Select(selectStatement, selectArgs...))
 
 	if hasLatLong && searchParams.Radius > 0 {
@@ -199,21 +202,20 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.Se
 		return nil, err
 	}
 
-	// Calculate offset
-	offset := (searchParams.Page - 1) * searchParams.PerPage
+	if total > 0 {
+		// Calculate offset
+		offset := (searchParams.Page - 1) * searchParams.PerPage
 
-	// Siapkan variabel untuk menampung hasil
-	var results []entity.Courier
+		// Eksekusi query dengan SELECT, LIMIT, OFFSET, dan ORDER BY
+		err = outerQuery.
+			Order(fmt.Sprintf("%s %s", searchParams.SortBy, searchParams.OrderBy)).
+			Limit(searchParams.PerPage).
+			Offset(offset).
+			Scan(&results).Error
 
-	// Eksekusi query dengan SELECT, LIMIT, OFFSET, dan ORDER BY
-	err = outerQuery.
-		Order(fmt.Sprintf("%s %s", searchParams.SortBy, searchParams.OrderBy)).
-		Limit(searchParams.PerPage).
-		Offset(offset).
-		Scan(&results).Error
-
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	response := &entity.CourierWithPaginate[entity.Courier]{
