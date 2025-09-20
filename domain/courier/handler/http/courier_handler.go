@@ -156,7 +156,7 @@ func (h *courierHandler) Register(c *gin.Context) {
 //	@Param		email		query	string	false	"search by email"
 //	@Param		longitude	query	string	false	"search by longitude"				default(106.8260)
 //	@Param		latitude	query	string	false	"search by latitude"				default(-6.1790)
-//	@Param		radius		query	string	false	"radius in meter"					default(0)
+//	@Param		radius		query	string	false	"radius in meter"					default(100)
 //	@Param		per_page	query	int		false	"per page"							default(10)
 //	@Param		page		query	int		false	"page"								default(1)
 //	@Param		sort_by		query	string	false	"sort by (id, distance_in_meters)"	default(id)

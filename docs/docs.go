@@ -363,7 +363,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "default": "0",
+                        "default": "100",
                         "description": "radius in meter",
                         "name": "radius",
                         "in": "query"
