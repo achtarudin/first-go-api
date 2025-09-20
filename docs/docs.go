@@ -362,8 +362,8 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "default": 0,
+                        "type": "string",
+                        "default": "0",
                         "description": "radius in meter",
                         "name": "radius",
                         "in": "query"
