@@ -25,7 +25,7 @@ type SearchCourier struct {
 	Email     string
 	Longitude float64
 	Latitude  float64
-	Radius    int
+	Radius    float64
 	Page      int
 	PerPage   int
 	SortBy    string

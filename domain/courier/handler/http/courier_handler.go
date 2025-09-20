@@ -176,13 +176,22 @@ func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 	err := c.ShouldBindQuery(&query)
 
 	if err != nil {
-		errorsMessage := h.validator.ValidateBind(err)
 		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
 			Status:  http.StatusBadRequest,
 			Message: "Bad Request",
-			Errors:  errorsMessage,
 		})
 
+		return
+	}
+
+	// Validate struct using validator
+	errorMessage, isValid := h.validator.ValidateStruct(query)
+	if isValid == false {
+		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Bad Request",
+			Errors:  errorMessage,
+		})
 		return
 	}
 
