@@ -1,9 +1,9 @@
-name: Merchant Workflow
+name: Env Workflow
 
 on:
   workflow_dispatch:
   push:
-    branches: [feat/merchant]
+    branches: [feat/workflow]
 
 env: 
   GUITAR: Fender
@@ -51,12 +51,3 @@ jobs:
           include-hidden-files: true
           name: my-artifact
           path: secret/
-
-  # music:
-  #   needs: information
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: The guitar I play
-  #       env:
-  #         PANGGUNG: GBK Sport Hall
-  #       run: echo "I play a ${{env.GUITAR}} guitar and ${{env.BASS}} bass at $PANGGUNG"
