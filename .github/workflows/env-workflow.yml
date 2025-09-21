@@ -3,7 +3,7 @@ name: Env Workflow
 on:
   workflow_dispatch:
   push:
-    branches: [feat/workflow]
+    branches: [fix/workflow]
 
 env: 
   GUITAR: Fender
