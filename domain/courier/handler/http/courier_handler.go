@@ -1,6 +1,7 @@
 package http
 
 import (
+	"cutbray/first_api/domain/courier/entity"
 	"cutbray/first_api/domain/courier/handler/request"
 	"cutbray/first_api/domain/courier/usecase"
 	"net/http"
@@ -218,12 +219,12 @@ func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 //	@Summary	Get all couriers
 //	@Tags		Couriers
 //	@Accept		json
-//	@Param		longitude	query	string	false	"search by longitude"
-//	@Param		latitude	query	string	false	"search by latitude"
+//	@Param		longitude	query	string	true	"search by longitude"				default(106.8260)
+//	@Param		latitude	query	string	true	"search by latitude"				default(-6.1790)
 //	@Param		per_page	query	int		false	"per page"							default(10)
 //	@Param		page		query	int		false	"page"								default(1)
 //	@Param		sort_by		query	string	false	"sort by (id, distance_in_meters)"	default(id)
-//	@Param		order_by	query	string	false	"order by (ASC , DESC)"				default(ASC)s
+//	@Param		order_by	query	string	false	"order by (ASC , DESC)"				default(ASC)
 //	@Produce	json
 //	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success	201
@@ -283,8 +284,9 @@ func (h *courierHandler) GetCourierByLongLat(c *gin.Context) {
 //	@Summary	Get all couriers
 //	@Tags		Couriers
 //	@Accept		json
-//	@Param		latitude	query	string	false	"search by latitude"
-//	@Param		longitude	query	string	false	"search by longitude"
+//	@Param		longitude	query	string	true	"search by longitude"	default(106.8260)
+//	@Param		latitude	query	string	true	"search by latitude"	default(-6.1790)
+//	@Param		radius		query	string	true	"radius in meter"		default(100)
 //	@Produce	json
 //	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success	201
@@ -294,9 +296,47 @@ func (h *courierHandler) GetCourierByLongLat(c *gin.Context) {
 //	@Failure	500
 //	@Router		/api/couriers/find-nearest [get]
 func (h *courierHandler) FindNearestCourier(c *gin.Context) {
+	var query request.GetNearestRequest
+	err := c.ShouldBindQuery(&query)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Bad Request",
+		})
+
+		return
+	}
+
+	// Validate struct using validator
+	errorMessage, isValid := h.validator.ValidateStruct(query)
+
+	if isValid == false {
+		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Bad Request",
+			Errors:  errorMessage,
+		})
+		return
+	}
+
+	result, err := h.usecase.GetNearestCourier(c, query.ToEntity())
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Internal Server Error",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
-		Message: "Get nearest courier success",
+		Message: "Get all couriers success",
+		Data:    map[string]*[]entity.Courier{"data": result},
 	})
 }
 

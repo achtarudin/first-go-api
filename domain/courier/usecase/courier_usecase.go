@@ -18,6 +18,7 @@ type CourierUsecase interface {
 	Register(ctx context.Context, courier *entity.Courier, hashPassword hashPasswordFunc) (*entity.Courier, error)
 	GetAllCouriers(ctx context.Context, search *entity.SearchCourier) (*entity.CourierWithPaginate[entity.Courier], error)
 	GetCourierByLongLat(ctx context.Context, search *entity.SearchByLongLatCourier) (*entity.CourierWithPaginate[entity.Courier], error)
+	GetNearestCourier(ctx context.Context, search *entity.SearchNearestCourier) (*[]entity.Courier, error)
 }
 
 type courierUsecase struct {
@@ -136,6 +137,23 @@ func (c *courierUsecase) GetCourierByLongLat(ctx context.Context, searchParams *
 		var txErr error
 
 		couriers, txErr = c.repo.ReadByLongLat(ctx, searchParams, tx)
+		if txErr != nil {
+			return txErr
+		}
+
+		return nil
+	})
+	return couriers, err
+}
+
+func (c *courierUsecase) GetNearestCourier(ctx context.Context, searchParams *entity.SearchNearestCourier) (*[]entity.Courier, error) {
+	var couriers *[]entity.Courier
+
+	err := c.repo.Trx(ctx, func(tx *gorm.DB) error {
+
+		var txErr error
+
+		couriers, txErr = c.repo.ReadNearest(ctx, searchParams, tx)
 		if txErr != nil {
 			return txErr
 		}

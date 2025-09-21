@@ -295,13 +295,23 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: search by latitude
-        in: query
-        name: latitude
-        type: string
-      - description: search by longitude
+      - default: "106.8260"
+        description: search by longitude
         in: query
         name: longitude
+        required: true
+        type: string
+      - default: "-6.1790"
+        description: search by latitude
+        in: query
+        name: latitude
+        required: true
+        type: string
+      - default: "100"
+        description: radius in meter
+        in: query
+        name: radius
+        required: true
         type: string
       produces:
       - application/json
@@ -408,13 +418,17 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: search by longitude
+      - default: "106.8260"
+        description: search by longitude
         in: query
         name: longitude
+        required: true
         type: string
-      - description: search by latitude
+      - default: "-6.1790"
+        description: search by latitude
         in: query
         name: latitude
+        required: true
         type: string
       - default: 10
         description: per page

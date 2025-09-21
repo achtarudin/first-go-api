@@ -29,6 +29,12 @@ type SearchByLongLatCourier struct {
 	OrderBy   string
 }
 
+type SearchNearestCourier struct {
+	Longitude float64
+	Latitude  float64
+	Radius    float64
+}
+
 type SearchCourier struct {
 	Name      string
 	Email     string

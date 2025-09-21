@@ -19,6 +19,7 @@ type CourierRepository interface {
 	FindByEmail(ctx context.Context, email string, roleId int, tx *gorm.DB) (*entity.Courier, error)
 	ReadAll(ctx context.Context, searchParams *entity.SearchCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
 	ReadByLongLat(ctx context.Context, searchParams *entity.SearchByLongLatCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
+	ReadNearest(ctx context.Context, searchParams *entity.SearchNearestCourier, tx *gorm.DB) (*[]entity.Courier, error)
 }
 
 type courierRepository struct {
@@ -143,7 +144,7 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.Se
 		tx = c.db.DB.WithContext(ctx)
 	}
 
-	roleId, err := c.FindRoleCourier(ctx, "courier", nil)
+	roleId, err := c.FindRoleCourier(ctx, model.RoleCourier, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -234,6 +235,17 @@ func (c *courierRepository) ReadByLongLat(ctx context.Context, searchParams *ent
 		tx = c.db.DB.WithContext(ctx)
 	}
 
+	roleId, err := c.FindRoleCourier(ctx, model.RoleCourier, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	query := tx.Model(model.Courier{}).
+		Joins("JOIN users ON users.id = couriers.user_id").
+		Joins("JOIN user_roles ON user_roles.user_id = users.id").
+		Where("user_roles.role_id = ?", roleId).
+		Where("latitude IS NOT NULL AND longitude IS NOT NULL")
+
 	// Kolom-kolom dasar yang selalu dipilih
 	selectParts := []string{
 		"users.name",
@@ -245,13 +257,13 @@ func (c *courierRepository) ReadByLongLat(ctx context.Context, searchParams *ent
 		"ST_Distance_Sphere(POINT(?, ?), couriers.location) AS distance_in_meters",
 	}
 
+	var selectArgs []interface{}
+
 	selectStatement := strings.Join(selectParts, ", ")
 
-	query := tx.Model(model.Courier{}).
-		Joins("JOIN users ON users.id = couriers.user_id").
-		Where("latitude IS NOT NULL AND longitude IS NOT NULL")
+	selectArgs = append(selectArgs, searchParams.Longitude, searchParams.Latitude)
 
-	outerQuery := tx.Table("(?) AS couriers_with_distance", query.Select(selectStatement, searchParams.Longitude, searchParams.Latitude))
+	outerQuery := tx.Table("(?) AS couriers_with_distance", query.Select(selectStatement, selectArgs...))
 
 	var total int64
 	var results []entity.Courier
@@ -281,4 +293,50 @@ func (c *courierRepository) ReadByLongLat(ctx context.Context, searchParams *ent
 		Total:       total,
 	}
 	return response, nil
+}
+
+func (c *courierRepository) ReadNearest(ctx context.Context, searchParams *entity.SearchNearestCourier, tx *gorm.DB) (*[]entity.Courier, error) {
+	if tx == nil {
+		tx = c.db.DB.WithContext(ctx)
+	}
+
+	roleId, err := c.FindRoleCourier(ctx, model.RoleCourier, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	query := tx.Model(model.Courier{}).
+		Joins("JOIN users ON users.id = couriers.user_id").
+		Joins("JOIN user_roles ON user_roles.user_id = users.id").
+		Where("user_roles.role_id = ?", roleId).
+		Where("latitude IS NOT NULL AND longitude IS NOT NULL")
+
+	// Kolom-kolom dasar yang selalu dipilih
+	selectArgs := []interface{}{}
+	selectParts := []string{
+		"users.name",
+		"users.email",
+		"couriers.user_id as id",
+		"couriers.phone",
+		"couriers.latitude",
+		"couriers.longitude",
+		"ST_Distance_Sphere(POINT(?, ?), couriers.location) AS distance_in_meters",
+	}
+
+	selectStatement := strings.Join(selectParts, ", ")
+
+	selectArgs = append(selectArgs, searchParams.Longitude, searchParams.Latitude)
+
+	outerQuery := tx.Table("(?) AS couriers_with_distance", query.Select(selectStatement, searchParams.Longitude, searchParams.Latitude))
+
+	var results []entity.Courier
+
+	result := outerQuery.Where("distance_in_meters <= ?", searchParams.Radius).
+		Order(fmt.Sprintf("%s %s", "distance_in_meters", "ASC")).
+		Scan(&results)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &results, nil
 }

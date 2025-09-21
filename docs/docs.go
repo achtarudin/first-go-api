@@ -273,15 +273,27 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "search by latitude",
-                        "name": "latitude",
-                        "in": "query"
+                        "default": "106.8260",
+                        "description": "search by longitude",
+                        "name": "longitude",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "search by longitude",
-                        "name": "longitude",
-                        "in": "query"
+                        "default": "-6.1790",
+                        "description": "search by latitude",
+                        "name": "latitude",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "100",
+                        "description": "radius in meter",
+                        "name": "radius",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -450,15 +462,19 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "default": "106.8260",
                         "description": "search by longitude",
                         "name": "longitude",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
+                        "default": "-6.1790",
                         "description": "search by latitude",
                         "name": "latitude",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
