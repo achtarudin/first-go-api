@@ -16,8 +16,9 @@ type CourierRepository interface {
 	Trx(ctx context.Context, clouseure func(tx *gorm.DB) error) error
 	Create(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error)
 	FindRoleCourier(ctx context.Context, roleName model.RoleStatus, tx *gorm.DB) (uint, error)
-	FindByEmail(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error)
+	FindByEmail(ctx context.Context, email string, roleId int, tx *gorm.DB) (*entity.Courier, error)
 	ReadAll(ctx context.Context, searchParams *entity.SearchCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
+	ReadByLongLat(ctx context.Context, searchParams *entity.SearchByLongLatCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
 }
 
 type courierRepository struct {
@@ -84,6 +85,7 @@ func (c *courierRepository) FindRoleCourier(ctx context.Context, roleName model.
 	if tx == nil {
 		tx = c.db.DB.WithContext(ctx)
 	}
+
 	var roleModel model.Role
 	result := tx.First(&roleModel, "name = ?", roleName)
 
@@ -98,7 +100,7 @@ func (c *courierRepository) FindRoleCourier(ctx context.Context, roleName model.
 	return roleModel.ID, nil
 }
 
-func (c *courierRepository) FindByEmail(ctx context.Context, courier *entity.Courier, tx *gorm.DB) (*entity.Courier, error) {
+func (c *courierRepository) FindByEmail(ctx context.Context, email string, roleId int, tx *gorm.DB) (*entity.Courier, error) {
 
 	if tx == nil {
 		tx = c.db.DB.WithContext(ctx)
@@ -110,10 +112,10 @@ func (c *courierRepository) FindByEmail(ctx context.Context, courier *entity.Cou
 	subQuery := tx.
 		Table("user_roles").
 		Select("user_roles.user_id").
-		Where("role_id = ?", courier.RoleId)
+		Where("role_id = ?", roleId)
 
 	// Cari user dengan email dan role courier
-	result := tx.Where("email = ?", courier.Email).
+	result := tx.Where("email = ?", email).
 		Where("id IN (?)", subQuery).
 		Where("id IN (?)", tx.Model(&model.Courier{}).Select("user_id")).
 		Preload("Courier").Preload("Roles").First(&userModel)
@@ -155,9 +157,9 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.Se
 
 	// Kolom-kolom dasar yang selalu dipilih
 	selectParts := []string{
-		"users.id",
 		"users.name",
 		"users.email",
+		"couriers.user_id as id",
 		"couriers.phone",
 		"couriers.latitude",
 		"couriers.longitude",
@@ -222,6 +224,60 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.Se
 		CurrentPage: searchParams.Page,
 		Data:        results,
 		PerPage:     searchParams.PerPage,
+		Total:       total,
+	}
+	return response, nil
+}
+
+func (c *courierRepository) ReadByLongLat(ctx context.Context, searchParams *entity.SearchByLongLatCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error) {
+	if tx == nil {
+		tx = c.db.DB.WithContext(ctx)
+	}
+
+	// Kolom-kolom dasar yang selalu dipilih
+	selectParts := []string{
+		"users.name",
+		"users.email",
+		"couriers.user_id as id",
+		"couriers.phone",
+		"couriers.latitude",
+		"couriers.longitude",
+		"ST_Distance_Sphere(POINT(?, ?), couriers.location) AS distance_in_meters",
+	}
+
+	selectStatement := strings.Join(selectParts, ", ")
+
+	query := tx.Model(model.Courier{}).
+		Joins("JOIN users ON users.id = couriers.user_id").
+		Where("latitude IS NOT NULL AND longitude IS NOT NULL")
+
+	outerQuery := tx.Table("(?) AS couriers_with_distance", query.Select(selectStatement, searchParams.Longitude, searchParams.Latitude))
+
+	var total int64
+	var results []entity.Courier
+
+	if err := outerQuery.Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	if total > 0 {
+		offset := (searchParams.Page - 1) * searchParams.PerPage
+
+		result := outerQuery.
+			Order(fmt.Sprintf("%s %s", searchParams.SortBy, searchParams.OrderBy)).
+			Limit(searchParams.PerPage).
+			Offset(offset).
+			Scan(&results)
+
+		if result.Error != nil {
+			return nil, result.Error
+		}
+	}
+
+	response := &entity.CourierWithPaginate[entity.Courier]{
+		CurrentPage: searchParams.Page,
+		PerPage:     searchParams.PerPage,
+		Data:        results,
 		Total:       total,
 	}
 	return response, nil

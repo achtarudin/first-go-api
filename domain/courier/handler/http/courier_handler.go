@@ -70,7 +70,7 @@ func (h *courierHandler) Login(c *gin.Context) {
 	}
 
 	courier := json.ToCourierLogin()
-	courierResult, err := h.usecase.Login(c, &courier, utils.VerifyPassword)
+	courierResult, err := h.usecase.Login(c, courier.Email, courier.Password, utils.VerifyPassword)
 
 	// If error occurs during usecase execution, return error response
 	if err != nil {
@@ -172,7 +172,6 @@ func (h *courierHandler) Register(c *gin.Context) {
 func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 
 	var query request.GetAllCourierRequest
-	// Bind query parameters to struct
 	err := c.ShouldBindQuery(&query)
 
 	if err != nil {
@@ -221,6 +220,10 @@ func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 //	@Accept		json
 //	@Param		longitude	query	string	false	"search by longitude"
 //	@Param		latitude	query	string	false	"search by latitude"
+//	@Param		per_page	query	int		false	"per page"							default(10)
+//	@Param		page		query	int		false	"page"								default(1)
+//	@Param		sort_by		query	string	false	"sort by (id, distance_in_meters)"	default(id)
+//	@Param		order_by	query	string	false	"order by (ASC , DESC)"				default(ASC)s
 //	@Produce	json
 //	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success	201
@@ -230,9 +233,48 @@ func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 //	@Failure	500
 //	@Router		/api/couriers/get-by-long-lat [get]
 func (h *courierHandler) GetCourierByLongLat(c *gin.Context) {
+
+	var query request.GetCourierByLongLatRequest
+	err := c.ShouldBindQuery(&query)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Bad Request",
+		})
+
+		return
+	}
+
+	// Validate struct using validator
+	errorMessage, isValid := h.validator.ValidateStruct(query)
+
+	if isValid == false {
+		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Bad Request",
+			Errors:  errorMessage,
+		})
+		return
+	}
+
+	result, err := h.usecase.GetCourierByLongLat(c, query.ToEntity())
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Internal Server Error",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
-		Message: "Get courier by longitude and latitude success",
+		Message: "Get all couriers success",
+		Data:    result,
 	})
 }
 
@@ -279,9 +321,9 @@ func (h *courierHandler) Update(c *gin.Context) {
 	})
 }
 
-// Update godoc
+// Delete godoc
 //
-//	@Summary	Update a courier
+//	@Summary	Delete a courier
 //	@Tags		Couriers
 //	@Accept		json
 //	@Param		payload	body	request.RegisterRequest	true	"json type"

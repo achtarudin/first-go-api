@@ -208,7 +208,7 @@ const docTemplate = `{
                 "tags": [
                     "Couriers"
                 ],
-                "summary": "Update a courier",
+                "summary": "Delete a courier",
                 "parameters": [
                     {
                         "description": "json type",
@@ -458,6 +458,34 @@ const docTemplate = `{
                         "type": "string",
                         "description": "search by latitude",
                         "name": "latitude",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "id",
+                        "description": "sort by (id, distance_in_meters)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "ASC",
+                        "description": "order by (ASC , DESC)",
+                        "name": "order_by",
                         "in": "query"
                     }
                 ],

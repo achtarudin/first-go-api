@@ -14,9 +14,10 @@ type hashPasswordFunc func(password string) (string, error)
 type verifyPasswordFunc func(password string, hash string) bool
 
 type CourierUsecase interface {
-	Login(ctx context.Context, courier *entity.Courier, verifyPassword verifyPasswordFunc) (*entity.Courier, error)
+	Login(ctx context.Context, email string, password string, verifyPassword verifyPasswordFunc) (*entity.Courier, error)
 	Register(ctx context.Context, courier *entity.Courier, hashPassword hashPasswordFunc) (*entity.Courier, error)
-	GetAllCouriers(ctx context.Context, entity *entity.SearchCourier) (*entity.CourierWithPaginate[entity.Courier], error)
+	GetAllCouriers(ctx context.Context, search *entity.SearchCourier) (*entity.CourierWithPaginate[entity.Courier], error)
+	GetCourierByLongLat(ctx context.Context, search *entity.SearchByLongLatCourier) (*entity.CourierWithPaginate[entity.Courier], error)
 }
 
 type courierUsecase struct {
@@ -30,7 +31,7 @@ func NewCourierUsecase(repo repository.CourierRepository) CourierUsecase {
 }
 
 // Login implements AuthUsecase.
-func (c *courierUsecase) Login(ctx context.Context, courier *entity.Courier, verifyPassword verifyPasswordFunc) (*entity.Courier, error) {
+func (c *courierUsecase) Login(ctx context.Context, email string, password string, verifyPassword verifyPasswordFunc) (*entity.Courier, error) {
 
 	var foundCourier *entity.Courier
 
@@ -44,14 +45,13 @@ func (c *courierUsecase) Login(ctx context.Context, courier *entity.Courier, ver
 			return txErr
 		}
 		// Find courier by email
-		courier.RoleId = int(roleId)
-		foundCourier, txErr = c.repo.FindByEmail(ctx, courier, txCtx)
+		foundCourier, txErr = c.repo.FindByEmail(ctx, email, int(roleId), txCtx)
 		if txErr != nil {
 			return txErr
 		}
 
 		// Verify password
-		if verifyPassword(courier.Password, foundCourier.Password) == false {
+		if verifyPassword(password, foundCourier.Password) == false {
 			txErr = errors.New("invalid password")
 			return txErr
 		}
@@ -107,12 +107,40 @@ func (c *courierUsecase) Register(ctx context.Context, courier *entity.Courier, 
 
 }
 
+// GetAllCouriers implements CourierUsecase.
 func (c *courierUsecase) GetAllCouriers(ctx context.Context, searchParams *entity.SearchCourier) (*entity.CourierWithPaginate[entity.Courier], error) {
 
-	result, err := c.repo.ReadAll(ctx, searchParams, nil)
+	var couriers *entity.CourierWithPaginate[entity.Courier]
 
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
+	err := c.repo.Trx(ctx, func(tx *gorm.DB) error {
+
+		var txErr error
+
+		couriers, txErr = c.repo.ReadAll(ctx, searchParams, tx)
+		if txErr != nil {
+			return txErr
+		}
+
+		return nil
+	})
+	return couriers, err
+
+}
+
+// GetCourierByLongLat implements CourierUsecase.
+func (c *courierUsecase) GetCourierByLongLat(ctx context.Context, searchParams *entity.SearchByLongLatCourier) (*entity.CourierWithPaginate[entity.Courier], error) {
+	var couriers *entity.CourierWithPaginate[entity.Courier]
+
+	err := c.repo.Trx(ctx, func(tx *gorm.DB) error {
+
+		var txErr error
+
+		couriers, txErr = c.repo.ReadByLongLat(ctx, searchParams, tx)
+		if txErr != nil {
+			return txErr
+		}
+
+		return nil
+	})
+	return couriers, err
 }
