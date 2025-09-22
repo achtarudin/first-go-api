@@ -141,10 +141,8 @@ jobs:
         run:  go mod download
 
       - name: Build the application
-        run: |
-          VERSION=$(git describe --tags --always)
-          CGO_ENABLED=0 go build -ldflags "-X 'main.Version=$VERSION'" -o bin/main main.go
-      
+        run: CGO_ENABLED=0 go build -o bin/main main.go
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

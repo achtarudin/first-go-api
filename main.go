@@ -26,8 +26,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var Version = "dev"
-
 // @securityDefinitions.apikey	ApiKeyAuth
 // @in							header
 // @name						Authorization
@@ -67,7 +65,7 @@ func main() {
 	// Initialize swagger
 	{
 		swaggerHadler := swagger.NewSwaggerHandler(server, "First GO API", "Documentation for First GO API")
-		swaggerHadler.RegisterRoute(Version)
+		swaggerHadler.RegisterRoute()
 	}
 
 	{
