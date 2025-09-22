@@ -164,8 +164,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Create .prod.env file from secrets
         run: echo "${{ secrets.PROD_ENV }}" > .prod.env
