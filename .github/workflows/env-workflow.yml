@@ -97,8 +97,6 @@ jobs:
         run: make test-verbose
 
       - name: Build the application
-        env:
-          DEBUG: false
         run: make build
 
       - name: Run and test application
@@ -111,7 +109,6 @@ jobs:
 
       - name: Output Step
         run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}}
-
 
   build:
     needs: test
@@ -145,7 +142,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run:  go mod download
+        run:  make deps
 
       - name: Build the application
         run: make build
@@ -158,3 +155,39 @@ jobs:
         with:
           name: binary-file
           path: bin
+
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' || true
+    runs-on: [self-hosted, Linux]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Create .prod.env file from secrets
+        run: echo "${{ secrets.PROD_ENV }}" > .prod.env
+
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-file
+          path: bin
+
+      - name: Check file exists
+        run: ls -la bin
+
+      - name: Check SHA256 of binary
+        run: sha256sum bin/main
+
+      # - name: Remove old container if exists
+      #   run: |
+      #     docker rm -f first_go_api_prod || true
+
+      # - name: Build and Run Production App with Docker Compose
+      #   run: |
+      #     echo $(pwd)
+      #     docker compose -f docker-compose.yml up -d --build app
+
+      - name: Deploy Finished Marker
+        run: echo "=== DEPLOYMENT SELESAI ==="
