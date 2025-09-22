@@ -1,53 +1,183 @@
-name: Env Workflow
+name: First Go API
 
 on:
   workflow_dispatch:
   push:
     branches: [fix/workflow]
 
-env: 
-  GUITAR: Fender
-  BASS: Ibanez
-
 jobs:
-  
-  information:
-    environment: development
-    env:
-      GUITAR: ${{vars.GUITAR}}
-      PANGGUNG: ${{vars.PANGGUNG}}
+  test:
+    environment: testing
+
     runs-on: ubuntu-latest
-    steps:
 
-      - name: GEAR AT var
-        run: echo "I play at ${{vars.PANGGUNG}} with my ${{vars.GUITAR}} guitar and ${{vars.BASS}} bass, ticket ${{secrets.PRICE}}"
+    env:
+      DEBUG: ${{ vars.DEBUG }}
+      PORT: ${{ vars.PORT }}
 
-      - name: GEAR AT env
+      DB_DRIVER: ${{ vars.DB_DRIVER }}
+      DB_HOST: ${{ vars.DB_HOST }}
+      DB_PORT: ${{ vars.DB_PORT }}
+      DB_DATABASE: ${{ vars.DB_DATABASE }}
+      DB_DATABASE_TESTING: ${{ vars.DB_DATABASE_TESTING }}
+      DB_USER: ${{ vars.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+
+      CACHE_DRIVER: ${{ vars.CACHE_DRIVER }}
+      CACHE_PORT: ${{ vars.CACHE_PORT }}
+      CACHE_USER:
+      CACHE_PASSWORD:
+
+      GOOSE_DRIVER: ${{ vars.GOOSE_DRIVER }}
+      GOOSE_DBSTRING: ${{ secrets.GOOSE_DBSTRING }}
+      GOOSE_MIGRATION_DIR: ${{ vars.GOOSE_MIGRATION_DIR }}
+
+    container:
+      image: golang:1.24-alpine
+      env:
+        PATH: /root/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+    services:
+      mysql:
+        image: mariadb:10.6.21
         env:
-          PANGGUNG: Ancol Beach
-        run: echo "I play at ${{env.PANGGUNG}} with my ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
-      
-      - name: GEAR without curly braces
-        run: echo "I play at $PANGGUNG with my $GUITAR guitar and $BASS bass"
-      
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ env.DB_DATABASE }}
+          MYSQL_USER: ${{ env.DB_USER }}
+          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
+        ports:
+          - "3306:3306"
+        volumes:
+          - ./docker/mysql:/docker-entrypoint-initdb.d
+
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Log go version
+        run: go version
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install make, curl,tar
+        run: |
+          apk add --no-cache make curl tar
+          go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
+
+      - name: Initialize Database
+        run: |
+          echo "Database service is ready. Initializing database..."
+          apk add --no-cache mariadb-client
+
+          # Tambahkan flag --ssl-mode=DISABLED di sini
+          mariadb -h mysql -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" --skip_ssl < ./docker/mysql/init.sql
+
+          echo "Database initialized successfully."
+
+      - name: Cache go modules
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            $HOME/.cache/go-build
+            /go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        run: make deps
+
+      - name: Run tests
+        run: make test-verbose
+
+      - name: Build the application
+        run: make build
+
+      - name: Run and test application
+        run: |
+          cd bin && ./main &
+          SERVER_PID=$!
+          sleep 3
+          curl -f http://localhost:8080/health
+          kill $SERVER_PID
+
+      - name: Output Step
+        run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}}
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    container:
+      image: golang:1.24-alpine
+      env:
+        DEBUG: false
+    steps:
+      - name: Log go version
+        run: go version
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Cache go modules
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            $HOME/.cache/go-build
+            /go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run:  go mod download
+
+      - name: Build the application
+        run: CGO_ENABLED=0 go build -o bin/main main.go
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-file
+          path: bin
+
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' || true
+    runs-on: [self-hosted, Linux]
+    steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
       - name: Create .prod.env file from secrets
-        run: |
-          # Buat direktori dan langsung tulis file di dalamnya tanpa perlu 'cd'
-          mkdir -p secret
-          echo "${{ secrets.PROD_ENV }}" > secret/prod.env
+        run: echo "${{ secrets.PROD_ENV }}" > .prod.env
 
-          # Opsional: Verifikasi isi file untuk debugging
-          echo "Verifying contents of the secret directory:"
-          ls -la secret
-          echo "---"
-          echo "Verifying content of the prod.env file:"
-          cat secret/prod.env
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4
         with:
-          include-hidden-files: true
-          name: my-artifact
-          path: secret/
+          name: binary-file
+          path: bin
+
+      - name: Check file exists
+        run: ls -la bin
+
+      - name: Remove old container if exists
+        run: |
+          docker rm -f first_go_api_prod || true
+
+      - name: Build and Run Production App with Docker Compose
+        run: |
+          echo $(pwd)
+          docker compose -f docker-compose.yml up -d --build app
+
+      - name: Deploy Finished Marker
+        run: echo "=== DEPLOYMENT SELESAI ==="
