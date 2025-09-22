@@ -111,3 +111,50 @@ jobs:
 
       - name: Output Step
         run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}}
+
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    container:
+      image: golang:1.24-alpine
+      env:
+        DEBUG: false
+    steps:
+      - name: Log go version
+        run: go version
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install make, curl, and tar
+        run: |
+          apk add --no-cache make curl tar coreutils
+
+      - name: Cache go modules
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            $HOME/.cache/go-build
+            /go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run:  go mod download
+
+      - name: Build the application
+        run: make build
+
+      - name: Check SHA256 of binary
+        run: sha256sum bin/main
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-file
+          path: bin
