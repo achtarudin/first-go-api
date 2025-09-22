@@ -1,53 +1,22 @@
-name: Env Workflow
+name: First Go API
 
 on:
   workflow_dispatch:
   push:
     branches: [fix/workflow]
 
-env: 
-  GUITAR: Fender
-  BASS: Ibanez
 
 jobs:
-  
-  information:
-    environment: development
-    env:
-      GUITAR: ${{vars.GUITAR}}
-      PANGGUNG: ${{vars.PANGGUNG}}
+  test:
+    environment: testing
+
     runs-on: ubuntu-latest
+
+    env: 
+       DEBUG: ${{ secrets.DEBUG }}
+
+
+
     steps:
-
-      - name: GEAR AT var
-        run: echo "I play at ${{vars.PANGGUNG}} with my ${{vars.GUITAR}} guitar and ${{vars.BASS}} bass, ticket ${{secrets.PRICE}}"
-
-      - name: GEAR AT env
-        env:
-          PANGGUNG: Ancol Beach
-        run: echo "I play at ${{env.PANGGUNG}} with my ${{env.GUITAR}} guitar and ${{env.BASS}} bass"
-      
-      - name: GEAR without curly braces
-        run: echo "I play at $PANGGUNG with my $GUITAR guitar and $BASS bass"
-      
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Create .prod.env file from secrets
-        run: |
-          # Buat direktori dan langsung tulis file di dalamnya tanpa perlu 'cd'
-          mkdir -p secret
-          echo "${{ secrets.PROD_ENV }}" > secret/prod.env
-
-          # Opsional: Verifikasi isi file untuk debugging
-          echo "Verifying contents of the secret directory:"
-          ls -la secret
-          echo "---"
-          echo "Verifying content of the prod.env file:"
-          cat secret/prod.env
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          include-hidden-files: true
-          name: my-artifact
-          path: secret/
+      - name: Show environment variables
+        run: printenv
