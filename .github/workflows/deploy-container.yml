@@ -9,28 +9,31 @@ on:
 
 jobs:
   test:
+    environment: testing
+
     runs-on: ubuntu-latest
+
     env:
-      DEBUG: true
-      PORT: 8080
+      DEBUG: ${{ vars.DEBUG }}
+      PORT: ${{ vars.PORT }}
 
-      DB_DRIVER: "mysql"
-      DB_HOST: "mysql"
-      DB_PORT: 3306
-      DB_DATABASE: "first_go_api_db"
-      DB_DATABASE_TESTING: "first_go_api_db_test"
-      DB_USER: "encang-cutbray"
-      DB_PASSWORD: "secret214"
-      DB_ROOT_PASSWORD: "secret214"
+      DB_DRIVER: ${{ vars.DB_DRIVER }}
+      DB_HOST: ${{ vars.DB_HOST }}
+      DB_PORT: ${{ vars.DB_PORT }}
+      DB_DATABASE: ${{ vars.DB_DATABASE }}
+      DB_DATABASE_TESTING: ${{ vars.DB_DATABASE_TESTING }}
+      DB_USER: ${{ vars.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
 
-      CACHE_DRIVER: "redis"
-      CACHE_PORT: "6379"
-      CACHE_USER: 
-      CACHE_PASSWORD: 
+      CACHE_DRIVER: ${{ vars.CACHE_DRIVER }}
+      CACHE_PORT: ${{ vars.CACHE_PORT }}
+      CACHE_USER:
+      CACHE_PASSWORD:
 
-      GOOSE_DRIVER: "mysql"
-      GOOSE_DBSTRING: "root:secret214@tcp(mysql:3306)/first_go_api_db"
-      GOOSE_MIGRATION_DIR: "./pkg/migration"
+      GOOSE_DRIVER: ${{ vars.GOOSE_DRIVER }}
+      GOOSE_DBSTRING: ${{ secrets.GOOSE_DBSTRING }}
+      GOOSE_MIGRATION_DIR: ${{ vars.GOOSE_MIGRATION_DIR }}
     container:
       image: golang:1.24-alpine
       env:
@@ -95,8 +98,6 @@ jobs:
         run: make test-verbose
 
       - name: Build the application
-        env:
-            DEBUG: false
         run: make build
 
       - name: Run and test application
