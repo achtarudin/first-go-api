@@ -15,4 +15,11 @@ jobs:
       - name: "Build Docker Image"
         run: |
           docker build -t first-go-api:latest -f docker/go.Dockerfile .
+          docker save first-go-api:latest -o first-go-api.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-go-api
+          path: first-go-api.tar
 
