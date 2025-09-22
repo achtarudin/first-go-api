@@ -125,10 +125,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Install make, curl, and tar
-        run: |
-          apk add --no-cache make curl tar coreutils
-
       - name: Cache go modules
         uses: actions/cache@v4
         id: cache
@@ -142,14 +138,13 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run:  make deps
+        run:  go mod download
 
       - name: Build the application
-        run: make build
-
-      - name: Check SHA256 of binary
-        run: sha256sum bin/main
-
+        run: |
+          VERSION=$(git describe --tags --always)
+          CGO_ENABLED=0 go build -ldflags "-X 'main.Version=$VERSION'" -o bin/main main.go
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -176,9 +171,6 @@ jobs:
 
       - name: Check file exists
         run: ls -la bin
-
-      - name: Check SHA256 of binary
-        run: sha256sum bin/main
 
       - name: Remove old container if exists
         run: |

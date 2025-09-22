@@ -23,10 +23,10 @@ func NewSwaggerHandler(server *gin.Engine, title string, description string) *sw
 	}
 }
 
-func (s *swaggerHandler) RegisterRoute() {
+func (s *swaggerHandler) RegisterRoute(version string) {
 	docs.SwaggerInfo.Title = s.title
 	docs.SwaggerInfo.Description = s.description
-	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Version = version
 	// docs.SwaggerInfo.Host = "localhost:8080"
 	// docs.SwaggerInfo.BasePath = "/"
 	// docs.SwaggerInfo.Schemes = []string{"http", "https"}
