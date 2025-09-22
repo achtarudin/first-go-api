@@ -5,16 +5,15 @@ on:
   push:
     branches: [fix/workflow]
 
-
 jobs:
   test:
     environment: testing
 
     runs-on: ubuntu-latest
 
-    env: 
+    env:
       DEBUG: ${{ vars.DEBUG }}
-      PORT:  ${{ vars.PORT }}
+      PORT: ${{ vars.PORT }}
 
       DB_DRIVER: ${{ vars.DB_DRIVER }}
       DB_HOST: ${{ vars.DB_HOST }}
@@ -27,8 +26,8 @@ jobs:
 
       CACHE_DRIVER: ${{ vars.CACHE_DRIVER }}
       CACHE_PORT: ${{ vars.CACHE_PORT }}
-      CACHE_USER: 
-      CACHE_PASSWORD: 
+      CACHE_USER:
+      CACHE_PASSWORD:
 
       GOOSE_DRIVER: ${{ vars.GOOSE_DRIVER }}
       GOOSE_DBSTRING: ${{ secrets.GOOSE_DBSTRING }}
@@ -38,7 +37,7 @@ jobs:
       image: golang:1.24-alpine
       env:
         PATH: /root/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-    
+
     services:
       mysql:
         image: mariadb:10.6.21
@@ -51,14 +50,14 @@ jobs:
           - "3306:3306"
         volumes:
           - ./docker/mysql:/docker-entrypoint-initdb.d
-        
+
         options: >-
           --health-cmd "mysqladmin ping -h localhost"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
-     steps:
+    steps:
       - name: Log go version
         run: go version
 
@@ -74,10 +73,10 @@ jobs:
         run: |
           echo "Database service is ready. Initializing database..."
           apk add --no-cache mariadb-client
-          
+
           # Tambahkan flag --ssl-mode=DISABLED di sini
           mariadb -h mysql -P 3306 -u root -p"${{ env.DB_ROOT_PASSWORD }}" --skip_ssl < ./docker/mysql/init.sql
-          
+
           echo "Database initialized successfully."
 
       - name: Cache go modules
@@ -99,7 +98,7 @@ jobs:
 
       - name: Build the application
         env:
-            DEBUG: false
+          DEBUG: false
         run: make build
 
       - name: Run and test application
@@ -112,4 +111,3 @@ jobs:
 
       - name: Output Step
         run: echo Cached:${{ steps.cache.outputs.cache-hit == 'true'}}
-
