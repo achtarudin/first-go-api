@@ -26,7 +26,7 @@ WORKDIR /app
 # Menyalin HANYA file biner 'main' yang sudah dicompile dari tahap 'builder'
 # COPY  ./bin/main .
 COPY --from=builder /app/bin/main .
-
+RUN chmod +x ./main
 
 # Mengekspos port yang digunakan oleh aplikasi
 EXPOSE 8080
