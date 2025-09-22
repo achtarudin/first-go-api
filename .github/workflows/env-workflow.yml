@@ -12,3 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: "Build Docker Image"
+        run: |
+          docker build -t first-go-api:latest -f docker/go.Dockerfile .
+
