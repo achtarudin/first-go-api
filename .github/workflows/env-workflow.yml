@@ -12,18 +12,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Set Docker tag
-        run: echo "DOCKER_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+      # - name: Set Docker tag
+      #   run: echo "DOCKER_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
 
-      - name: Build Docker Image
-        run: |
-          docker build -t first-go-api:${DOCKER_TAG} -f docker/go.Dockerfile .
-          docker save first-go-api:${DOCKER_TAG} -o first-go-api.tar
-
-      # - name: "Build Docker Image"
+      # - name: Build Docker Image
       #   run: |
-      #     docker build -t first-go-api:latest -f docker/go.Dockerfile .
-      #     docker save first-go-api:latest -o first-go-api.tar
+      #     docker build -t first-go-api:${DOCKER_TAG} -f docker/go.Dockerfile .
+      #     docker save first-go-api:${DOCKER_TAG} -o first-go-api.tar
+
+      - name: "Build Docker Image"
+        run: |
+          docker build -t first-go-api:latest -f docker/go.Dockerfile .
+          docker save first-go-api:latest -o first-go-api.tar
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -60,5 +60,12 @@ jobs:
       - name: Build and Run Production App with Docker Compose
         run: |
           echo $(pwd)
-          docker compose -f docker-compose.yml up -d --build app
+          docker compose -f docker-compose.yml up -d app
+
+      - name: Cleanup unused Docker images
+        run: docker image prune -af
+
+      - name: List Docker images
+        run: docker image ls
+
 
