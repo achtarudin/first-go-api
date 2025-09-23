@@ -13,7 +13,6 @@ services:
     ports:
       - "8080:8080"
 
-
   main:
     build:
     image: first-go-api-main:latest
