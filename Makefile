@@ -44,7 +44,7 @@ test-bench:
 
 # Build the application
 build:
-	go build -o bin/main main.go
+	CGO_ENABLED=0 go build -o bin/main main.go
 
 # Run the application
 run:
@@ -61,7 +61,7 @@ deps:
 	go mod download
 
 # Run tests and build (CI pipeline)
-ci: test build
+ci: test-verbose build
 
 # Run specific test domain
 test-domain:

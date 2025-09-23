@@ -17,7 +17,8 @@ COPY . .
 # Mengkompilasi aplikasi Go.
 # CGO_ENABLED=0 membuat biner yang statis (tidak bergantung pada library C sistem).
 # -o /app/main menentukan outputnya adalah satu file bernama 'main'.
-RUN CGO_ENABLED=0 go build -o /app/main .
+RUN CGO_ENABLED=0 go build -o bin/main main.go
+
 
 
 # =================================================================
@@ -31,7 +32,7 @@ FROM alpine:3.22
 WORKDIR /app
 
 # Menyalin HANYA file biner 'main' yang sudah dicompile dari tahap 'builder'
-COPY --from=builder /app/main .
+COPY --from=builder /app/bin/main .
 
 # Mengekspos port yang digunakan oleh aplikasi
 EXPOSE 8080
