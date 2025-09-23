@@ -45,7 +45,12 @@ jobs:
       - name: Create .prod.env file from secrets
         run: echo "${{ secrets.PROD_ENV }}" > .prod.env
 
-      # - name: Remove old container if exists
-      #   run: |
-      #     docker rm -f first_go_api_prod || true
+      - name: Remove old container if exists
+        run: |
+          docker rm -f first_go_api_prod || true
+
+      - name: Build and Run Production App with Docker Compose
+        run: |
+          echo $(pwd)
+          docker compose -f docker-compose.yml up -d --build app
 

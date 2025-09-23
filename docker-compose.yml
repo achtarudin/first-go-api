@@ -2,9 +2,9 @@ services:
   # Service untuk lingkungan PRODUCTION
   # Menjalankan aplikasi yang sudah dicompile dari Dockerfile di atas
   app:
-    build:
-      context: .
-      dockerfile: docker/go.prod.Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: docker/go.prod.Dockerfile
     image: first-go-api:latest
     container_name: first_go_api_prod
     restart: unless-stopped
