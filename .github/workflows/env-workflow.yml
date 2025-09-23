@@ -31,7 +31,6 @@ jobs:
           name: first-go-api
           path: first-go-api.tar
 
-
   deploy:
     needs: build
     runs-on: [self-hosted, Linux]
