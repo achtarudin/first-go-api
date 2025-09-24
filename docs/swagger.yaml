@@ -287,6 +287,8 @@ paths:
           description: Unprocessable Entity
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Delete a courier
       tags:
       - Couriers
@@ -584,6 +586,8 @@ paths:
           description: Unprocessable Entity
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Update a courier
       tags:
       - Couriers

@@ -13,27 +13,32 @@ import (
 )
 
 type courierHandler struct {
-	router    *gin.RouterGroup
-	usecase   usecase.CourierUsecase
-	validator *utils.Validator
+	router      *gin.RouterGroup
+	middlewares []gin.HandlerFunc
+	validator   *utils.Validator
+	usecase     usecase.CourierUsecase
 }
 
-func NewCourierHandler(router *gin.RouterGroup, usecase usecase.CourierUsecase, validator *utils.Validator) *courierHandler {
+func NewCourierHandler(router *gin.RouterGroup, middlewares []gin.HandlerFunc, validator *utils.Validator, usecase usecase.CourierUsecase) *courierHandler {
 	return &courierHandler{
-		router:    router,
-		usecase:   usecase,
-		validator: validator,
+		router:      router,
+		middlewares: middlewares,
+		validator:   validator,
+		usecase:     usecase,
 	}
 }
 
 func (h *courierHandler) RegisterRoute() {
+
 	h.router.POST("/couriers/login", h.Login)
 	h.router.POST("/couriers/register", h.Register)
 	h.router.GET("/couriers/get-all", h.GetAllCouriers)
 	h.router.GET("/couriers/get-by-long-lat", h.GetCourierByLongLat)
 	h.router.GET("/couriers/find-nearest", h.FindNearestCourier)
-	h.router.PUT("/couriers/update", h.Update)
-	h.router.DELETE("/couriers/delete", h.Delete)
+
+	routeGroupMiddleware := h.router.Group("", h.middlewares...)
+	routeGroupMiddleware.PUT("/couriers/update", h.Update)
+	routeGroupMiddleware.DELETE("/couriers/delete", h.Delete)
 
 }
 
@@ -342,6 +347,7 @@ func (h *courierHandler) FindNearestCourier(c *gin.Context) {
 
 // Update godoc
 //
+//	@Security	ApiKeyAuth
 //	@Summary	Update a courier
 //	@Tags		Couriers
 //	@Accept		json
@@ -363,6 +369,7 @@ func (h *courierHandler) Update(c *gin.Context) {
 
 // Delete godoc
 //
+//	@Security	ApiKeyAuth
 //	@Summary	Delete a courier
 //	@Tags		Couriers
 //	@Accept		json

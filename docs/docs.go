@@ -199,6 +199,11 @@ const docTemplate = `{
         },
         "/api/couriers/delete": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -667,6 +672,11 @@ const docTemplate = `{
         },
         "/api/couriers/update": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
