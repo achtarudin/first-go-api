@@ -205,7 +205,7 @@ func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
 			Status:  http.StatusInternalServerError,
-			Message: "Internal Server Error",
+			Message: "Failed to get all couriers",
 			Errors: map[string]string{
 				"error": err.Error(),
 			},
@@ -269,7 +269,7 @@ func (h *courierHandler) GetCourierByLongLat(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
 			Status:  http.StatusInternalServerError,
-			Message: "Internal Server Error",
+			Message: "Failed to get courier by long lat",
 			Errors: map[string]string{
 				"error": err.Error(),
 			},
@@ -330,7 +330,7 @@ func (h *courierHandler) FindNearestCourier(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
 			Status:  http.StatusInternalServerError,
-			Message: "Internal Server Error",
+			Message: "Failed to get nearest courier",
 			Errors: map[string]string{
 				"error": err.Error(),
 			},
@@ -351,7 +351,7 @@ func (h *courierHandler) FindNearestCourier(c *gin.Context) {
 //	@Summary	Update a courier
 //	@Tags		Couriers
 //	@Accept		json
-//	@Param		payload	body	request.RegisterRequest	true	"json type"
+//	@Param		payload	body	request.UpdateRequest	true	"json type"
 //	@Produce	json
 //	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success	201
@@ -361,9 +361,44 @@ func (h *courierHandler) FindNearestCourier(c *gin.Context) {
 //	@Failure	500
 //	@Router		/api/couriers/update [put]
 func (h *courierHandler) Update(c *gin.Context) {
+
+	var json request.UpdateRequest
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Bad Request",
+		})
+		return
+	}
+
+	// Validate struct using validator
+	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
+		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
+			Status:  http.StatusUnprocessableEntity,
+			Message: "Validation failed",
+			Errors:  errorMessage,
+		})
+		return
+	}
+
+	userId, _ := c.Get("user_id")
+	result, err := h.usecase.UpdateCourier(c, int(userId.(float64)), json.ToEntity(), utils.HashPassword)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to update courier",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Update courier success",
+		Data:    result,
 	})
 }
 
@@ -373,7 +408,6 @@ func (h *courierHandler) Update(c *gin.Context) {
 //	@Summary	Delete a courier
 //	@Tags		Couriers
 //	@Accept		json
-//	@Param		payload	body	request.RegisterRequest	true	"json type"
 //	@Produce	json
 //	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
 //	@Success	201
@@ -383,8 +417,24 @@ func (h *courierHandler) Update(c *gin.Context) {
 //	@Failure	500
 //	@Router		/api/couriers/delete [delete]
 func (h *courierHandler) Delete(c *gin.Context) {
+	userId, _ := c.Get("user_id")
+
+	result, err := h.usecase.DeletedCourier(c, int(userId.(float64)))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to delete courier",
+			Errors: map[string]string{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Delete courier success",
+		Data:    result,
 	})
 }

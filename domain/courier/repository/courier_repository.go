@@ -20,6 +20,8 @@ type CourierRepository interface {
 	ReadAll(ctx context.Context, searchParams *entity.SearchCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
 	ReadByLongLat(ctx context.Context, searchParams *entity.SearchByLongLatCourier, tx *gorm.DB) (*entity.CourierWithPaginate[entity.Courier], error)
 	ReadNearest(ctx context.Context, searchParams *entity.SearchNearestCourier, tx *gorm.DB) (*[]entity.Courier, error)
+	Update(ctx context.Context, userId int, courier *entity.UpdateCourier, tx *gorm.DB) (*entity.Courier, error)
+	Delete(ctx context.Context, userId int, tx *gorm.DB) (*entity.Courier, error)
 }
 
 type courierRepository struct {
@@ -339,4 +341,114 @@ func (c *courierRepository) ReadNearest(ctx context.Context, searchParams *entit
 		return nil, result.Error
 	}
 	return &results, nil
+}
+
+func (c *courierRepository) Update(ctx context.Context, userId int, courier *entity.UpdateCourier, tx *gorm.DB) (*entity.Courier, error) {
+	if tx == nil {
+		tx = c.db.DB.WithContext(ctx)
+	}
+
+	// Find existing user
+	var existingUser model.User
+	err := tx.Preload("Courier").First(&existingUser, uint(userId)).Error
+
+	// Handle error if is not existing user
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("courier with the given user id not found")
+		}
+		return nil, err
+	}
+
+	// Update user
+	userUpdate := tx.Model(&existingUser).Updates(model.User{
+		Name:     courier.Name,
+		Password: courier.Password,
+	})
+
+	// handle error if update user failed
+	if userUpdate.Error != nil {
+		return nil, userUpdate.Error
+	}
+
+	// Update courier
+	if courier.Longitude == 0 {
+		courier.Longitude = *existingUser.Courier.Longitude
+	}
+
+	if courier.Latitude == 0 {
+		courier.Latitude = *existingUser.Courier.Latitude
+	}
+
+	courierUpdate := tx.Model(&existingUser.Courier).Updates(model.Courier{
+		Phone:     courier.Phone,
+		Longitude: &courier.Longitude,
+		Latitude:  &courier.Latitude,
+		Location: model.Point{
+			Lng: courier.Longitude,
+			Lat: courier.Latitude,
+		},
+	})
+
+	// Handle error if update courier failed
+	if courierUpdate.Error != nil {
+		return nil, courierUpdate.Error
+	}
+
+	// Reload the updated user and courier
+	err = tx.Preload("Courier").First(&existingUser, uint(userId)).Error
+	if err != nil {
+		return nil, err
+	}
+
+	updatedCourier := &entity.Courier{
+		ID:        int(existingUser.ID),
+		Name:      existingUser.Name,
+		Email:     existingUser.Email,
+		Phone:     existingUser.Courier.Phone,
+		Longitude: *existingUser.Courier.Longitude,
+		Latitude:  *existingUser.Courier.Latitude,
+	}
+
+	return updatedCourier, nil
+
+}
+
+func (c *courierRepository) Delete(ctx context.Context, userId int, tx *gorm.DB) (*entity.Courier, error) {
+	if tx == nil {
+		tx = c.db.DB.WithContext(ctx)
+	}
+
+	// Find existing user
+	var existingUser model.User
+	err := tx.Preload("Courier").First(&existingUser, uint(userId)).Error
+
+	// Handle error if is not existing user
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("courier with the given user id not found")
+		}
+		return nil, err
+	}
+
+	// Delete courier record first if present
+	if existingUser.Courier.ID != 0 {
+		if err := tx.Delete(&existingUser.Courier).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	// Delete user record
+	if err := tx.Delete(&existingUser).Error; err != nil {
+		return nil, err
+	}
+
+	deletedCourier := &entity.Courier{
+		ID:    int(existingUser.ID),
+		Name:  existingUser.Name,
+		Email: existingUser.Email,
+		Phone: existingUser.Courier.Phone,
+	}
+
+	return deletedCourier, nil
 }
