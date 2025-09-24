@@ -12,6 +12,13 @@ func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 
+		// jwtConfig := utils.NewJwtConfig(&entity.User{
+		// 	ID:    11,
+		// 	Email: "kurir_11@example.com",
+		// }, time.Now().Add(time.Minute).Unix())
+
+		// tokenString, _ = utils.GenerateTokenWithConfig(jwtConfig)
+
 		if tokenString == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response.BindErrorResponse{
 				Status:  http.StatusUnauthorized,

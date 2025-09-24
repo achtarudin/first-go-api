@@ -199,6 +199,11 @@ const docTemplate = `{
         },
         "/api/couriers/delete": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -209,17 +214,6 @@ const docTemplate = `{
                     "Couriers"
                 ],
                 "summary": "Delete a courier",
-                "parameters": [
-                    {
-                        "description": "json type",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cutbray_first_api_domain_courier_handler_request.RegisterRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "success response so the data field is array of any type",
@@ -667,6 +661,11 @@ const docTemplate = `{
         },
         "/api/couriers/update": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -684,7 +683,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cutbray_first_api_domain_courier_handler_request.RegisterRequest"
+                            "$ref": "#/definitions/request.UpdateRequest"
                         }
                     }
                 ],
@@ -1203,6 +1202,42 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "John Doe"
+                }
+            }
+        },
+        "request.UpdateRequest": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "type": "string",
+                    "example": "-6.1790"
+                },
+                "longitude": {
+                    "type": "string",
+                    "example": "106.8260"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "example": "John Doe"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 6,
+                    "example": "password"
+                },
+                "password_confirmation": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 6,
+                    "example": "password"
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 15,
+                    "minLength": 6,
+                    "example": "+6282118302438"
                 }
             }
         },

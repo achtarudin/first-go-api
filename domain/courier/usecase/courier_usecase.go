@@ -19,6 +19,8 @@ type CourierUsecase interface {
 	GetAllCouriers(ctx context.Context, search *entity.SearchCourier) (*entity.CourierWithPaginate[entity.Courier], error)
 	GetCourierByLongLat(ctx context.Context, search *entity.SearchByLongLatCourier) (*entity.CourierWithPaginate[entity.Courier], error)
 	GetNearestCourier(ctx context.Context, search *entity.SearchNearestCourier) (*[]entity.Courier, error)
+	UpdateCourier(ctx context.Context, userId int, courier *entity.UpdateCourier, hashPassword hashPasswordFunc) (*entity.Courier, error)
+	DeletedCourier(ctx context.Context, userId int) (*entity.Courier, error)
 }
 
 type courierUsecase struct {
@@ -161,4 +163,53 @@ func (c *courierUsecase) GetNearestCourier(ctx context.Context, searchParams *en
 		return nil
 	})
 	return couriers, err
+}
+
+func (c *courierUsecase) UpdateCourier(ctx context.Context, userId int, courier *entity.UpdateCourier, hashPassword hashPasswordFunc) (*entity.Courier, error) {
+	var updatedCourier *entity.Courier
+
+	if courier.Password != "" {
+
+		hashedPassword, err := hashPassword(courier.Password)
+
+		if err != nil {
+			return nil, err
+		}
+
+		courier.Password = hashedPassword
+	}
+
+	err := c.repo.Trx(ctx, func(tx *gorm.DB) error {
+
+		var txErr error
+
+		updatedCourier, txErr = c.repo.Update(ctx, userId, courier, tx)
+
+		if txErr != nil {
+			return txErr
+		}
+
+		return nil
+	})
+
+	return updatedCourier, err
+}
+
+func (c *courierUsecase) DeletedCourier(ctx context.Context, userId int) (*entity.Courier, error) {
+	var deletedCourier *entity.Courier
+
+	err := c.repo.Trx(ctx, func(tx *gorm.DB) error {
+
+		var txErr error
+
+		deletedCourier, txErr = c.repo.Delete(ctx, userId, tx)
+
+		if txErr != nil {
+			return txErr
+		}
+
+		return nil
+	})
+
+	return deletedCourier, err
 }

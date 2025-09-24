@@ -108,3 +108,20 @@ func ParseTimePointer(s *string, layout string) *time.Time {
 	}
 	return &val
 }
+
+func DefaultIfZero[T comparable](ptr *T, defaultValue T) {
+	// Pastikan pointer tidak nil untuk menghindari panic
+	if ptr == nil {
+		return
+	}
+
+	// Deklarasikan variabel 'zero' dengan tipe T. Secara otomatis,
+	// 'zero' akan berisi zero value dari tipe tersebut (misal, 0 untuk int, "" untuk string).
+	var zero T
+
+	// Jika nilai yang ditunjuk oleh ptr sama dengan zero value-nya,
+	// maka ganti nilainya dengan defaultValue.
+	if *ptr == zero {
+		*ptr = defaultValue
+	}
+}

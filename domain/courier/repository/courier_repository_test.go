@@ -79,6 +79,8 @@ func (suite *CourierRepositoryTestSuite) TestSaveCourier() {
 		timestamp := time.Now().Unix()
 
 		hashedPassword, err := utils.HashPassword("password")
+		assert.NoError(suite.T(), err)
+
 		roleId, err := suite.courierRepository.FindRoleCourier(context, model.RoleCourier, tx)
 		assert.NoError(suite.T(), err)
 
