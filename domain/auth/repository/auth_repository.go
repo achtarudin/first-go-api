@@ -4,6 +4,7 @@ import (
 	"context"
 	"cutbray/first_api/domain/auth/entity"
 	"cutbray/first_api/infra"
+	"cutbray/first_api/pkg/customerror"
 	"cutbray/first_api/pkg/model"
 	"errors"
 
@@ -11,9 +12,10 @@ import (
 )
 
 type AuthRepository interface {
-	FindByEmail(ctx context.Context, user *entity.User) (*entity.User, error)
+	Trx(ctx context.Context, fn func(tx *gorm.DB) error) error
+	FindByEmail(ctx context.Context, email string) (*entity.User, error)
 	FindById(ctx context.Context, id string) (*entity.User, error)
-	Save(ctx context.Context, user *entity.User, hashPassword string) error
+	Save(ctx context.Context, user *entity.User, hashedPassword string) error
 	ReadAll(ctx context.Context) ([]entity.User, error)
 	Update(ctx context.Context, user *entity.User) error
 	Delete(ctx context.Context, id string) error
@@ -29,20 +31,35 @@ func NewAuthRepository(db *infra.Database) AuthRepository {
 	}
 }
 
-// Delete implements AuthRepository.
-func (a *authRepository) Delete(ctx context.Context, id string) error {
-	return nil
+func (a *authRepository) Trx(ctx context.Context, fn func(tx *gorm.DB) error) error {
+	return a.db.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return fn(tx)
+	})
 }
 
 // FindByEmail implements AuthRepository.
-func (a *authRepository) FindByEmail(ctx context.Context, user *entity.User) (*entity.User, error) {
+func (a *authRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var userModel model.User
-	if err := a.db.DB.WithContext(ctx).First(&userModel, "email = ?", user.Email).Error; err != nil {
-		return nil, err
+
+	result := a.db.DB.WithContext(ctx).First(&userModel, "email = ?", email)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, customerror.New(customerror.CodeNotFound, "user not found",
+				map[string]any{"email": "user with this email not found"}, result.Error,
+			)
+		}
+		return nil, customerror.New(customerror.CodeDBQuery, "failed to query user by email",
+			nil, result.Error,
+		)
 	}
 
-	user.ID = int(userModel.ID)
-	user.Password = userModel.Password
+	user := &entity.User{
+		ID:       int(userModel.ID),
+		Name:     userModel.Name,
+		Email:    userModel.Email,
+		Password: userModel.Password,
+	}
 	return user, nil
 }
 
@@ -61,29 +78,48 @@ func (a *authRepository) ReadAll(ctx context.Context) ([]entity.User, error) {
 }
 
 // Save implements AuthRepository.
-func (a *authRepository) Save(ctx context.Context, user *entity.User, hashPassword string) error {
-	var userModel model.User
-	userModel.Name = user.Name
-	userModel.Email = user.Email
-	userModel.Password = hashPassword
+func (a *authRepository) Save(ctx context.Context, user *entity.User, hashedPassword string) error {
 
-	// Create a single record
-	result := a.db.DB.WithContext(ctx).Create(&userModel)
+	userIsExists, err := a.FindByEmail(ctx, user.Email)
 
-	if result.Error != nil {
-		// Cek error duplikat dari MySQL
-		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
-			return errors.New("email already exists")
-		}
-		return result.Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return customerror.New(customerror.CodeInternal, "failed to check email existence",
+			nil, err,
+		)
 	}
 
-	user.ID = int(userModel.ID)
+	if userIsExists != nil {
+		return customerror.New(customerror.CodeConflict, "email already exists",
+			map[string]any{"email": "email already exists"}, gorm.ErrDuplicatedKey,
+		)
+	}
+
+	m := &model.User{
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: hashedPassword,
+	}
+
+	// Create a single record
+	result := a.db.DB.WithContext(ctx).Create(m)
+
+	if result.Error != nil {
+		return customerror.New(customerror.CodeInternal, "failed to save the user",
+			nil, result.Error,
+		)
+	}
+
+	user.ID = int(m.ID)
 	user.Password = ""
 	return nil
 }
 
 // Update implements AuthRepository.
 func (a *authRepository) Update(ctx context.Context, user *entity.User) error {
+	return nil
+}
+
+// Delete implements AuthRepository.
+func (a *authRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }

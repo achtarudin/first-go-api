@@ -4,14 +4,16 @@ import (
 	"context"
 	"cutbray/first_api/domain/auth/entity"
 	"cutbray/first_api/domain/auth/repository"
-	"cutbray/first_api/pkg/utils"
+	"cutbray/first_api/pkg/customerror"
 	"errors"
 )
 
 type hashPasswordFunc func(password string) (string, error)
 type verifyPasswordFunc func(password string, hash string) bool
+type generateTokenFunc func(user *entity.User) (string, error)
+
 type AuthUsecase interface {
-	Login(ctx context.Context, user *entity.User, verifyPassword verifyPasswordFunc) error
+	Login(ctx context.Context, user *entity.User, verifyPassword verifyPasswordFunc, generateToken generateTokenFunc) error
 	Register(ctx context.Context, user *entity.User, hashPassword hashPasswordFunc) error
 }
 
@@ -26,22 +28,27 @@ func NewAuthUsecase(repo repository.AuthRepository) AuthUsecase {
 }
 
 // Login implements AuthUsecase.
-func (a *authUsecase) Login(ctx context.Context, user *entity.User, verifyPassword verifyPasswordFunc) error {
+func (a *authUsecase) Login(ctx context.Context, user *entity.User, verifyPassword verifyPasswordFunc, generateToken generateTokenFunc) error {
 	inputPassword := user.Password
 
-	foundUser, err := a.repo.FindByEmail(ctx, user)
+	foundUser, err := a.repo.FindByEmail(ctx, user.Email)
+
 	if err != nil {
-		return errors.New("user not found")
+		return err
 	}
 
 	if verifyPassword(inputPassword, foundUser.Password) == false {
-		return errors.New("invalid password")
+		return customerror.New(customerror.CodeUnauthorized, "invalid credentials",
+			map[string]any{"email": "invalid email or password"}, errors.New("password does not match"),
+		)
 	}
 
-	token, err := utils.GenerateToken(user)
+	token, err := generateToken(user)
 
 	if err != nil {
-		return errors.New("failed to generate token")
+		return customerror.New(customerror.CodeHashFailed, "failed to generate token",
+			nil, err,
+		)
 	}
 
 	user.Token = token
@@ -54,7 +61,9 @@ func (a *authUsecase) Login(ctx context.Context, user *entity.User, verifyPasswo
 func (a *authUsecase) Register(ctx context.Context, user *entity.User, hashPassword hashPasswordFunc) error {
 	hash, err := hashPassword(user.Password)
 	if err != nil {
-		return errors.New("failed to hash password")
+		return customerror.New(customerror.CodeHashFailed, "failed to hash password",
+			nil, err,
+		)
 	}
 	return a.repo.Save(ctx, user, hash)
 }

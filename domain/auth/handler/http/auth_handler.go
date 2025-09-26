@@ -3,6 +3,7 @@ package http
 import (
 	"cutbray/first_api/domain/auth/handler/request"
 	"cutbray/first_api/domain/auth/usecase"
+	"cutbray/first_api/pkg/customerror"
 	"cutbray/first_api/pkg/response"
 	"cutbray/first_api/pkg/utils"
 	"net/http"
@@ -65,7 +66,7 @@ func (h *authHandler) Login(c *gin.Context) {
 
 	// Convert to entity and call usecase
 	user := json.ToUserLogin()
-	err := h.usecase.Login(c, &user, utils.VerifyPassword)
+	err := h.usecase.Login(c, &user, utils.VerifyPassword, utils.GenerateToken)
 
 	// If error occurs during usecase execution, return error response
 	if err != nil {
@@ -104,37 +105,32 @@ func (h *authHandler) Register(c *gin.Context) {
 
 	// Validate input
 	var json request.RegisterRequest
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	// Validate struct using validator
-	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors:  errorMessage,
-		})
+	errorMessage, isValid := h.validator.ValidateStruct(json)
+	if isValid == false {
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	// Convert to entity and call usecase
 	user := json.ToUserRegister()
-	err := h.usecase.Register(c, &user, utils.HashPassword)
+	err = h.usecase.Register(c, &user, utils.HashPassword)
 
 	// If error occurs during usecase execution, return error response
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
 

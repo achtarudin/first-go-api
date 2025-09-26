@@ -62,6 +62,8 @@ func main() {
 	server.Use(cors.Default())
 	server.SetTrustedProxies([]string{"127.0.0.1"})
 
+	server.Use(middleware.ErrorHandler())
+
 	// Initialize swagger
 	{
 		swaggerHadler := swagger.NewSwaggerHandler(server, "First GO API", "Documentation for First GO API")
