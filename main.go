@@ -62,16 +62,21 @@ func main() {
 	server.Use(cors.Default())
 	server.SetTrustedProxies([]string{"127.0.0.1"})
 
+	server.Use(middleware.ErrorHandler())
+
 	// Initialize swagger
 	{
 		swaggerHadler := swagger.NewSwaggerHandler(server, "First GO API", "Documentation for First GO API")
 		swaggerHadler.RegisterRoute()
 	}
 
-	{
-		// Initialize Middleware
-		authMiddleware := middleware.JWTAuth()
+	// Initialize Middleware
+	authMiddleware := middleware.JWTAuth()
+	checkRoleMiddleware := middleware.NewCheckRoleRepository(db)
+	courierMiddleware := checkRoleMiddleware.IsCourier()
+	// merchantMiddleware := checkRoleMiddleware.IsMerchant()
 
+	{
 		// Initialize hello
 		{
 			helloHandler := hello.NewHelloHandler(server, &authMiddleware)
@@ -82,9 +87,7 @@ func main() {
 	{
 		// Initialize API group
 		api := server.Group("/api")
-		checkRoleMiddleware := middleware.NewCheckRoleRepository(db)
-		api.Use(checkRoleMiddleware.IsMerchant())
-		api.Use(checkRoleMiddleware.IsCourier())
+
 		// Initialize auth
 		{
 			repoAuth := authRepo.NewAuthRepository(db)
@@ -97,7 +100,10 @@ func main() {
 		{
 			courierRepo := courierRepo.NewCourierRepository(db)
 			usecaseCourier := courierUsecase.NewCourierUsecase(courierRepo)
-			courierHandler := courier.NewCourierHandler(api, usecaseCourier, validate)
+			courierHandler := courier.NewCourierHandler(api, []gin.HandlerFunc{
+				authMiddleware,
+				courierMiddleware,
+			}, validate, usecaseCourier)
 			courierHandler.RegisterRoute()
 		}
 

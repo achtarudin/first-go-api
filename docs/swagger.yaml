@@ -131,6 +131,34 @@ definitions:
         example: John Doe
         type: string
     type: object
+  request.UpdateRequest:
+    properties:
+      latitude:
+        example: "-6.1790"
+        type: string
+      longitude:
+        example: "106.8260"
+        type: string
+      name:
+        example: John Doe
+        minLength: 3
+        type: string
+      password:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+      password_confirmation:
+        example: password
+        maxLength: 100
+        minLength: 6
+        type: string
+      phone:
+        example: "+6282118302438"
+        maxLength: 15
+        minLength: 6
+        type: string
+    type: object
   response.SuccessResponse:
     properties:
       data: {}
@@ -257,13 +285,6 @@ paths:
     delete:
       consumes:
       - application/json
-      parameters:
-      - description: json type
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/cutbray_first_api_domain_courier_handler_request.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -287,6 +308,8 @@ paths:
           description: Unprocessable Entity
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Delete a courier
       tags:
       - Couriers
@@ -560,7 +583,7 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/cutbray_first_api_domain_courier_handler_request.RegisterRequest'
+          $ref: '#/definitions/request.UpdateRequest'
       produces:
       - application/json
       responses:
@@ -584,6 +607,8 @@ paths:
           description: Unprocessable Entity
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Update a courier
       tags:
       - Couriers

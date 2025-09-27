@@ -7,3 +7,12 @@ type User struct {
 	Password string `json:"password,omitempty"`
 	Token    string `json:"token,omitempty"`
 }
+
+func NewUser(id int, name, email, password string) *User {
+	return &User{
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+	}
+}
