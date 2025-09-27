@@ -51,6 +51,7 @@ func (a *authUsecase) Login(ctx context.Context, user *entity.User, verifyPasswo
 		)
 	}
 
+	user.ID = foundUser.ID
 	user.Token = token
 	user.Password = ""
 

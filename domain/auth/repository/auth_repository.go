@@ -16,6 +16,8 @@ type AuthRepository interface {
 	FindByEmail(ctx context.Context, email string) (*entity.User, error)
 	FindById(ctx context.Context, id string) (*entity.User, error)
 	Save(ctx context.Context, user *entity.User, hashedPassword string) error
+	SaveWithTrx(ctx context.Context, user *entity.User, hashedPassword string, tx *gorm.DB) error
+
 	ReadAll(ctx context.Context) ([]entity.User, error)
 	Update(ctx context.Context, user *entity.User) error
 	Delete(ctx context.Context, id string) error
@@ -41,7 +43,7 @@ func (a *authRepository) Trx(ctx context.Context, fn func(tx *gorm.DB) error) er
 func (a *authRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var userModel model.User
 
-	result := a.db.DB.WithContext(ctx).First(&userModel, "email = ?", email)
+	result := a.db.DB.WithContext(ctx).Select("id", "name", "email", "password").First(&userModel, "email = ?", email)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -65,27 +67,35 @@ func (a *authRepository) FindByEmail(ctx context.Context, email string) (*entity
 
 // FindById implements AuthRepository.
 func (a *authRepository) FindById(ctx context.Context, id string) (*entity.User, error) {
-	var user entity.User
-	if err := a.db.DB.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
+	user := model.User{}
 
-// ReadAll implements AuthRepository.
-func (a *authRepository) ReadAll(ctx context.Context) ([]entity.User, error) {
-	return nil, nil
+	result := a.db.DB.WithContext(ctx).First(&user, id)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, customerror.New(customerror.CodeNotFound, "user not found",
+				map[string]any{"id": "user with this id not found"}, result.Error,
+			)
+		}
+		return nil, customerror.New(customerror.CodeDBQuery, "failed to query user by email",
+			nil, result.Error,
+		)
+	}
+
+	return &entity.User{
+		ID:       int(user.ID),
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: user.Password,
+	}, nil
 }
 
 // Save implements AuthRepository.
 func (a *authRepository) Save(ctx context.Context, user *entity.User, hashedPassword string) error {
 
 	userIsExists, err := a.FindByEmail(ctx, user.Email)
-
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return customerror.New(customerror.CodeInternal, "failed to check email existence",
-			nil, err,
-		)
+		return err
 	}
 
 	if userIsExists != nil {
@@ -112,6 +122,70 @@ func (a *authRepository) Save(ctx context.Context, user *entity.User, hashedPass
 	user.ID = int(m.ID)
 	user.Password = ""
 	return nil
+}
+
+// Save implements AuthRepository.
+func (a *authRepository) SaveWithTrx(ctx context.Context, user *entity.User, hashedPassword string, tx *gorm.DB) error {
+
+	if tx == nil {
+		tx = a.db.DB.WithContext(ctx)
+	}
+
+	userIsExists, err := a.FindByEmail(ctx, user.Email)
+
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	if userIsExists != nil {
+		return customerror.New(customerror.CodeConflict, "email already exists",
+			map[string]any{"email": "email already exists"}, gorm.ErrDuplicatedKey,
+		)
+	}
+
+	m := &model.User{
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: hashedPassword,
+	}
+
+	// Create a single record
+	result := tx.Create(m)
+
+	if result.Error != nil {
+		return customerror.New(customerror.CodeInternal, "failed to save the user",
+			nil, result.Error,
+		)
+	}
+
+	user.ID = int(m.ID)
+	user.Password = ""
+	return nil
+}
+
+// ReadAll implements AuthRepository.
+func (a *authRepository) ReadAll(ctx context.Context) ([]entity.User, error) {
+
+	var users []model.User
+
+	result := a.db.DB.WithContext(ctx).Select("id", "name", "email").Find(&users)
+	if result.Error != nil {
+		return nil, customerror.New(customerror.CodeDBQuery, "failed to query all users",
+			nil, result.Error,
+		)
+	}
+
+	var entityUsers = make([]entity.User, 0, len(users))
+	for _, u := range users {
+		entityUsers = append(entityUsers, entity.User{
+			ID:       int(u.ID),
+			Name:     u.Name,
+			Email:    u.Email,
+			Password: u.Password,
+		})
+	}
+
+	return entityUsers, nil
 }
 
 // Update implements AuthRepository.
