@@ -5,6 +5,7 @@ import (
 	"cutbray/first_api/domain/merchant/usecase"
 	"net/http"
 
+	"cutbray/first_api/pkg/customerror"
 	"cutbray/first_api/pkg/response"
 	"cutbray/first_api/pkg/utils"
 
@@ -27,7 +28,11 @@ func NewMerchantHandler(router *gin.RouterGroup, usecase usecase.MerchantUsecase
 
 func (h *merchantHandler) RegisterRoute() {
 	h.router.POST("/merchants/login", h.Login)
-	h.router.POST("/merchants/register", h.Register)
+	h.router.GET("/merchants/get-all", h.GetAll)
+	h.router.GET("/merchants/get-by-id", h.GetById)
+	h.router.GET("/merchants/get-by-user-id", h.GetByUserId)
+	h.router.PUT("/merchants/update", h.Update)
+	h.router.DELETE("/merchants/delete", h.Delete)
 }
 
 // Login godoc
@@ -46,27 +51,28 @@ func (h *merchantHandler) RegisterRoute() {
 //	@Router		/api/merchants/login [post]
 func (h *merchantHandler) Login(c *gin.Context) {
 	var json request.LoginRequest
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
-	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors:  errorMessage,
-		})
+	errorMessage, isValid := h.validator.ValidateStruct(json)
+	if isValid == false {
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Login success",
-		Data:    []any{},
+		Data:    json.ToMerchantLogin(),
 	})
 }
 
@@ -87,27 +93,129 @@ func (h *merchantHandler) Login(c *gin.Context) {
 func (h *merchantHandler) Register(c *gin.Context) {
 	// Validate input
 	var json request.RegisterRequest
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
-	// Validate struct using validator
-	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors:  errorMessage,
-		})
+	errorMessage, isValid := h.validator.ValidateStruct(json)
+	if isValid == false {
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Register success",
-		Data:    []any{},
+		Data:    json.ToMerchantRegister(),
+	})
+}
+
+// GetAll godoc
+//
+//	@Summary	Get all merchants
+//	@Tags		Merchants
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/merchants/get-all [get]
+func (h *merchantHandler) GetAll(c *gin.Context) {
+
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Get all merchants success",
+	})
+}
+
+// GetById godoc
+//
+//	@Summary	Get a merchant by ID
+//	@Tags		Merchants
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/merchants/get-by-id [get]
+func (h *merchantHandler) GetById(c *gin.Context) {
+
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Get merchant by ID success",
+	})
+}
+
+// GetByUserId godoc
+//
+//	@Summary	Get merchants by User ID
+//	@Tags		Merchants
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/merchants/get-by-user-id [get]
+func (h *merchantHandler) GetByUserId(c *gin.Context) {
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Get merchants by User ID success",
+	})
+}
+
+// Update godoc
+//
+//	@Summary	Update a merchant
+//	@Tags		Merchants
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/merchants/update [put]
+func (h *merchantHandler) Update(c *gin.Context) {
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Update merchants by User ID success",
+	})
+}
+
+// Delete godoc
+//
+//	@Summary	Delete a merchant
+//	@Tags		Merchants
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	response.SuccessResponse{data=[]any}	"success response so the data field is array of any type"
+//	@Success	201
+//	@Failure	400
+//	@Failure	404
+//	@Failure	422
+//	@Failure	500
+//	@Router		/api/merchants/delete [delete]
+func (h *merchantHandler) Delete(c *gin.Context) {
+	c.JSON(http.StatusOK, response.SuccessResponse{
+		Status:  http.StatusOK,
+		Message: "Update merchants by User ID success",
 	})
 }

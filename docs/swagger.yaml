@@ -100,6 +100,8 @@ definitions:
       email:
         example: user@example.com
         type: string
+      merchant:
+        $ref: '#/definitions/request.merchant'
       name:
         example: John Doe
         type: string
@@ -115,6 +117,7 @@ definitions:
         type: string
     required:
     - email
+    - merchant
     - name
     - password
     - password_confirmation
@@ -158,6 +161,22 @@ definitions:
         maxLength: 15
         minLength: 6
         type: string
+    type: object
+  request.merchant:
+    properties:
+      address:
+        example: 123 Main St
+        maxLength: 100
+        minLength: 6
+        type: string
+      name:
+        example: Merchant ABC
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - address
+    - name
     type: object
   response.SuccessResponse:
     properties:
@@ -612,6 +631,126 @@ paths:
       summary: Update a courier
       tags:
       - Couriers
+  /api/merchants/delete:
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Delete a merchant
+      tags:
+      - Merchants
+  /api/merchants/get-all:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Get all merchants
+      tags:
+      - Merchants
+  /api/merchants/get-by-id:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Get a merchant by ID
+      tags:
+      - Merchants
+  /api/merchants/get-by-user-id:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Get merchants by User ID
+      tags:
+      - Merchants
   /api/merchants/login:
     post:
       consumes:
@@ -684,6 +823,36 @@ paths:
         "500":
           description: Internal Server Error
       summary: Register a new merchant
+      tags:
+      - Merchants
+  /api/merchants/update:
+    put:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success response so the data field is array of any type
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.SuccessResponse'
+            - properties:
+                data:
+                  items: {}
+                  type: array
+              type: object
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      summary: Update a merchant
       tags:
       - Merchants
   /health:
