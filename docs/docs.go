@@ -727,6 +727,11 @@ const docTemplate = `{
         },
         "/api/merchants/delete": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1049,6 +1054,11 @@ const docTemplate = `{
         },
         "/api/merchants/update": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],

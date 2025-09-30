@@ -20,7 +20,8 @@ type courierHandler struct {
 	usecase     usecase.CourierUsecase
 }
 
-func NewCourierHandler(router *gin.RouterGroup, middlewares []gin.HandlerFunc, validator *utils.Validator, usecase usecase.CourierUsecase) *courierHandler {
+func NewCourierHandler(router *gin.RouterGroup, middlewares []gin.HandlerFunc,
+	validator *utils.Validator, usecase usecase.CourierUsecase) *courierHandler {
 	return &courierHandler{
 		router:      router,
 		middlewares: middlewares,

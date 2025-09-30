@@ -13,16 +13,20 @@ import (
 )
 
 type merchantHandler struct {
-	router    *gin.RouterGroup
-	usecase   usecase.MerchantUsecase
-	validator *utils.Validator
+	router      *gin.RouterGroup
+	middlewares []gin.HandlerFunc
+	validator   *utils.Validator
+	usecase     usecase.MerchantUsecase
 }
 
-func NewMerchantHandler(router *gin.RouterGroup, usecase usecase.MerchantUsecase, validator *utils.Validator) *merchantHandler {
+func NewMerchantHandler(
+	router *gin.RouterGroup, middlewares []gin.HandlerFunc,
+	validator *utils.Validator, usecase usecase.MerchantUsecase) *merchantHandler {
 	return &merchantHandler{
-		router:    router,
-		usecase:   usecase,
-		validator: validator,
+		router:      router,
+		middlewares: middlewares,
+		validator:   validator,
+		usecase:     usecase,
 	}
 }
 
@@ -31,8 +35,10 @@ func (h *merchantHandler) RegisterRoute() {
 	h.router.GET("/merchants/get-all", h.GetAll)
 	h.router.GET("/merchants/get-by-id", h.GetById)
 	h.router.GET("/merchants/get-by-user-id", h.GetByUserId)
-	h.router.PUT("/merchants/update", h.Update)
-	h.router.DELETE("/merchants/delete", h.Delete)
+
+	routeGroupMiddleware := h.router.Group("", h.middlewares...)
+	routeGroupMiddleware.PUT("/merchants/update", h.Update)
+	routeGroupMiddleware.DELETE("/merchants/delete", h.Delete)
 }
 
 // Login godoc
@@ -182,6 +188,7 @@ func (h *merchantHandler) GetByUserId(c *gin.Context) {
 
 // Update godoc
 //
+//	@Security	ApiKeyAuth
 //	@Summary	Update a merchant
 //	@Tags		Merchants
 //	@Accept		json
@@ -202,6 +209,7 @@ func (h *merchantHandler) Update(c *gin.Context) {
 
 // Delete godoc
 //
+//	@Security	ApiKeyAuth
 //	@Summary	Delete a merchant
 //	@Tags		Merchants
 //	@Accept		json

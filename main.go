@@ -74,7 +74,7 @@ func main() {
 	authMiddleware := middleware.JWTAuth()
 	checkRoleMiddleware := middleware.NewCheckRoleRepository(db)
 	courierMiddleware := checkRoleMiddleware.IsCourier()
-	// merchantMiddleware := checkRoleMiddleware.IsMerchant()
+	merchantMiddleware := checkRoleMiddleware.IsMerchant()
 
 	{
 		// Initialize hello
@@ -111,7 +111,10 @@ func main() {
 		{
 			merchantRepo := merchantRepo.NewMerchantRepository(db)
 			usecaseMerchant := merchantUsecase.NewMerchantUsecase(merchantRepo)
-			merchantHandler := merchant.NewMerchantHandler(api, usecaseMerchant, validate)
+			merchantHandler := merchant.NewMerchantHandler(api, []gin.HandlerFunc{
+				authMiddleware,
+				merchantMiddleware,
+			}, validate, usecaseMerchant)
 			merchantHandler.RegisterRoute()
 		}
 	}

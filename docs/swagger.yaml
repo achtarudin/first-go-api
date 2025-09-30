@@ -658,6 +658,8 @@ paths:
           description: Unprocessable Entity
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Delete a merchant
       tags:
       - Merchants
@@ -852,6 +854,8 @@ paths:
           description: Unprocessable Entity
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Update a merchant
       tags:
       - Merchants
