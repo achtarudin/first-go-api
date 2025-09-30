@@ -16,6 +16,7 @@ type MerchantRepository interface {
 	Trx(ctx context.Context, clouseure func(tx *gorm.DB) error) error
 	Create(ctx context.Context, merchant *entity.UserMerchantRegister, tx *gorm.DB) (*entity.UserMerchant, error)
 	FindRoleMerchant(ctx context.Context, tx *gorm.DB) (uint, error)
+	FindByEmail(ctx context.Context, email string, tx *gorm.DB) (*entity.UserMerchant, error)
 }
 
 type merchantRepository struct {
@@ -124,4 +125,57 @@ func (c *merchantRepository) FindRoleMerchant(ctx context.Context, tx *gorm.DB) 
 	}
 
 	return roleModel.ID, nil
+}
+
+func (c *merchantRepository) FindByEmail(ctx context.Context, email string, tx *gorm.DB) (*entity.UserMerchant, error) {
+
+	if tx == nil {
+		tx = c.db.DB.WithContext(ctx)
+	}
+
+	var userModel model.User
+
+	// Find role merchant
+	roleId, err := c.FindRoleMerchant(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Subquery untuk mendapatkan user_id dari user_roles dengan role merchant
+	subQuery := tx.
+		Table("user_roles").
+		Select("user_roles.user_id").
+		Where("role_id = ?", roleId)
+
+	// Cari user dengan email dan role courier
+	result := tx.Where("email = ?", email).
+		Where("id IN (?)", subQuery).
+		Where("id IN (?)", tx.Model(&model.Merchant{}).Select("user_id")).
+		Preload("Merchants").First(&userModel)
+
+	if result.Error != nil {
+		isNotfound := errors.Is(result.Error, gorm.ErrRecordNotFound)
+		return nil, utils.IfElse(isNotfound,
+			customerror.New(
+				customerror.CodeInvalidInput,
+				"User not found",
+				map[string]any{"email": "user not found"},
+				result.Error,
+			),
+			customerror.New(
+				customerror.CodeInternal,
+				"Internal server error",
+				nil,
+				result.Error,
+			),
+		)
+	}
+
+	userMerchant := &entity.UserMerchant{
+		ID:       int(userModel.ID),
+		Name:     userModel.Name,
+		Email:    userModel.Email,
+		Password: userModel.Password,
+	}
+	return userMerchant, nil
 }

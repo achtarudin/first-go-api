@@ -76,10 +76,16 @@ func (h *merchantHandler) Login(c *gin.Context) {
 		return
 	}
 
+	result, err := h.usecase.Login(c.Request.Context(), json.ToMerchantLogin(), utils.VerifyPassword, utils.GenerateTokenFromIdAndEmail)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Login success",
-		Data:    json.ToMerchantLogin(),
+		Data:    result,
 	})
 }
 

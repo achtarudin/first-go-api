@@ -5,6 +5,7 @@ import (
 	"cutbray/first_api/domain/merchant/entity"
 	"cutbray/first_api/domain/merchant/repository"
 	"cutbray/first_api/pkg/customerror"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -30,7 +31,40 @@ func NewMerchantUsecase(repo repository.MerchantRepository) MerchantUsecase {
 
 func (m *merchantUsecase) Login(ctx context.Context, merchant *entity.UserMerchantLogin,
 	verifyPassword verifyPasswordFunc, generateToken generateTokenFunc) (*entity.UserMerchant, error) {
-	return nil, nil
+
+	var foundUserMerchant *entity.UserMerchant
+
+	err := m.repo.Trx(ctx, func(tx *gorm.DB) error {
+		var txErr error
+
+		// Find user merchant by email
+		foundUserMerchant, txErr = m.repo.FindByEmail(ctx, merchant.Email, tx)
+		if txErr != nil {
+			return txErr
+		}
+
+		// Verify password
+		if verifyPassword(merchant.Password, foundUserMerchant.Password) == false {
+			txErr = customerror.New(customerror.CodeInvalidInput,
+				"Invalid input",
+				map[string]any{"email": "invalid input"},
+				errors.New("Invalid input"))
+			return txErr
+		}
+
+		// Generate token
+		token, err := generateToken(foundUserMerchant.ID, foundUserMerchant.Email)
+		if err != nil {
+			txErr = customerror.New(customerror.CodeInternal, "Failed Generate token", nil, err)
+			return txErr
+		}
+
+		foundUserMerchant.Password = "" // Clear password before returning
+		foundUserMerchant.Token = token
+		return nil
+
+	})
+	return foundUserMerchant, err
 }
 
 func (m *merchantUsecase) Register(ctx context.Context, merchant *entity.UserMerchantRegister,
