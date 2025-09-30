@@ -6,6 +6,7 @@ import (
 	"cutbray/first_api/domain/courier/usecase"
 	"net/http"
 
+	"cutbray/first_api/pkg/customerror"
 	"cutbray/first_api/pkg/response"
 	"cutbray/first_api/pkg/utils"
 
@@ -19,7 +20,8 @@ type courierHandler struct {
 	usecase     usecase.CourierUsecase
 }
 
-func NewCourierHandler(router *gin.RouterGroup, middlewares []gin.HandlerFunc, validator *utils.Validator, usecase usecase.CourierUsecase) *courierHandler {
+func NewCourierHandler(router *gin.RouterGroup, middlewares []gin.HandlerFunc,
+	validator *utils.Validator, usecase usecase.CourierUsecase) *courierHandler {
 	return &courierHandler{
 		router:      router,
 		middlewares: middlewares,
@@ -58,35 +60,36 @@ func (h *courierHandler) RegisterRoute() {
 //	@Router		/api/couriers/login [post]
 func (h *courierHandler) Login(c *gin.Context) {
 	var json request.LoginRequest
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
-	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors:  errorMessage,
-		})
+	errorMessage, isValid := h.validator.ValidateStruct(json)
+	if isValid == false {
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	courier := json.ToCourierLogin()
-	courierResult, err := h.usecase.Login(c, courier.Email, courier.Password, utils.VerifyPassword)
+	courierResult, err := h.usecase.Login(
+		c.Request.Context(),
+		courier.Email,
+		courier.Password,
+		utils.VerifyPassword,
+		utils.GenerateTokenFromIdAndEmail,
+	)
 
 	// If error occurs during usecase execution, return error response
 	if err != nil {
-		c.JSON(http.StatusNotFound, response.BindErrorResponse{
-			Status:  http.StatusNotFound,
-			Message: "Not Found",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
 
@@ -114,38 +117,34 @@ func (h *courierHandler) Login(c *gin.Context) {
 func (h *courierHandler) Register(c *gin.Context) {
 	// Validate input
 	var json request.RegisterRequest
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	// Validate struct using validator
-	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors:  errorMessage,
-		})
+	errorMessage, isValid := h.validator.ValidateStruct(json)
+	if isValid == false {
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	courier := json.ToCourierRegister()
-	createdCourier, err := h.usecase.Register(c, &courier, utils.HashPassword)
+	createdCourier, err := h.usecase.Register(c.Request.Context(), &courier, utils.HashPassword)
 
 	// If error occurs during usecase execution, return error response
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Register success",
@@ -179,37 +178,29 @@ func (h *courierHandler) GetAllCouriers(c *gin.Context) {
 
 	var query request.GetAllCourierRequest
 	err := c.ShouldBindQuery(&query)
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
-
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	// Validate struct using validator
 	errorMessage, isValid := h.validator.ValidateStruct(query)
 	if isValid == false {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-			Errors:  errorMessage,
-		})
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
-	result, err := h.usecase.GetAllCouriers(c, query.ToEntity())
+	result, err := h.usecase.GetAllCouriers(c.Request.Context(), query.ToEntity())
 
+	// If error occurs during usecase execution, return error response
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed to get all couriers",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
 	c.JSON(http.StatusOK, response.SuccessResponse{
@@ -242,38 +233,29 @@ func (h *courierHandler) GetCourierByLongLat(c *gin.Context) {
 
 	var query request.GetCourierByLongLatRequest
 	err := c.ShouldBindQuery(&query)
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
-
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	// Validate struct using validator
 	errorMessage, isValid := h.validator.ValidateStruct(query)
-
 	if isValid == false {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-			Errors:  errorMessage,
-		})
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
-	result, err := h.usecase.GetCourierByLongLat(c, query.ToEntity())
+	result, err := h.usecase.GetCourierByLongLat(c.Request.Context(), query.ToEntity())
 
+	// If error occurs during usecase execution, return error response
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed to get courier by long lat",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
 
@@ -305,36 +287,28 @@ func (h *courierHandler) FindNearestCourier(c *gin.Context) {
 	err := c.ShouldBindQuery(&query)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
-
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	// Validate struct using validator
 	errorMessage, isValid := h.validator.ValidateStruct(query)
-
 	if isValid == false {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-			Errors:  errorMessage,
-		})
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
-	result, err := h.usecase.GetNearestCourier(c, query.ToEntity())
+	result, err := h.usecase.GetNearestCourier(c.Request.Context(), query.ToEntity())
 
+	// If error occurs during usecase execution, return error response
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed to get nearest courier",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
 
@@ -363,35 +337,31 @@ func (h *courierHandler) FindNearestCourier(c *gin.Context) {
 func (h *courierHandler) Update(c *gin.Context) {
 
 	var json request.UpdateRequest
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	// Validate struct using validator
-	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors:  errorMessage,
-		})
+	errorMessage, isValid := h.validator.ValidateStruct(json)
+	if isValid == false {
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	userId, _ := c.Get("user_id")
-	result, err := h.usecase.UpdateCourier(c, int(userId.(float64)), json.ToEntity(), utils.HashPassword)
+	result, err := h.usecase.UpdateCourier(c.Request.Context(), int(userId.(float64)), json.ToEntity(), utils.HashPassword)
 
+	// If error occurs during usecase execution, return error response
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed to update courier",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
 
@@ -419,16 +389,10 @@ func (h *courierHandler) Update(c *gin.Context) {
 func (h *courierHandler) Delete(c *gin.Context) {
 	userId, _ := c.Get("user_id")
 
-	result, err := h.usecase.DeletedCourier(c, int(userId.(float64)))
+	result, err := h.usecase.DeletedCourier(c.Request.Context(), int(userId.(float64)))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.BindErrorResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "Failed to delete courier",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
 

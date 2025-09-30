@@ -8,8 +8,8 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required" validate:"required,min=6,max=100" example:"password"`
 }
 
-func (r LoginRequest) ToMerchantLogin() entity.UserMerchant {
-	return entity.UserMerchant{
+func (r LoginRequest) ToMerchantLogin() *entity.UserMerchantLogin {
+	return &entity.UserMerchantLogin{
 		Email:    r.Email,
 		Password: r.Password,
 	}

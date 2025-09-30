@@ -73,7 +73,7 @@ test-pkg:
 
 # Run migration test
 test-migrations:
-	go test -v -cover -count=1 ./pkg/migrations/...
+	go test -v -cover -count=1 ./pkg/migration/...
 
 # Format code
 fmt:

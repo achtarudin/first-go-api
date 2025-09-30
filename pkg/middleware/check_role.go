@@ -31,7 +31,6 @@ func (r *checkRoleRepository) IsCourier() gin.HandlerFunc {
 		userId, existsId := c.Get("user_id")
 		email, existsEmail := c.Get("email")
 
-		_ = userId
 		if !existsId || !existsEmail {
 			c.AbortWithStatusJSON(http.StatusForbidden, response.BindErrorResponse{
 				Status:  http.StatusForbidden,
@@ -71,13 +70,43 @@ func (r *checkRoleRepository) IsCourier() gin.HandlerFunc {
 
 func (r *checkRoleRepository) IsMerchant() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if false {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response.BindErrorResponse{
-				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+		userId, existsId := c.Get("user_id")
+		email, existsEmail := c.Get("email")
+
+		if !existsId || !existsEmail {
+			c.AbortWithStatusJSON(http.StatusForbidden, response.BindErrorResponse{
+				Status:  http.StatusForbidden,
+				Message: "Forbidden",
 			})
 			return
 		}
+
+		user := model.User{}
+
+		result := r.db.DB.
+			Where("email = ?", email).
+			Where("id = ?", userId).
+			Where("id IN (?)", r.db.DB.Model(&model.Merchant{}).Select("user_id")).
+			First(&user)
+
+		if result.Error != nil {
+
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				c.AbortWithStatusJSON(http.StatusForbidden, response.BindErrorResponse{
+					Status:  http.StatusForbidden,
+					Message: "Forbidden",
+					Errors:  result.Error.Error(),
+				})
+			} else {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, response.BindErrorResponse{
+					Status:  http.StatusInternalServerError,
+					Message: "Internal Server Error",
+				})
+			}
+
+			return
+		}
+
 		c.Next()
 	}
 }
