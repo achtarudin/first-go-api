@@ -45,40 +45,35 @@ func (h *authHandler) RegisterRoute() {
 //	@Failure		500
 //	@Router			/api/auth/login [post]
 func (h *authHandler) Login(c *gin.Context) {
-
 	var json request.LoginRequest
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, response.BindErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: "Bad Request",
-		})
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
+		customErr := customerror.New(customerror.CodeInvalidInput, "Invalid input",
+			nil, err,
+		)
+		c.Error(customErr)
 		return
 	}
 
-	if errorMessage, isValid := h.validator.ValidateStruct(json); isValid == false {
-		c.JSON(http.StatusUnprocessableEntity, response.BindErrorResponse{
-			Status:  http.StatusUnprocessableEntity,
-			Message: "Validation failed",
-			Errors:  errorMessage,
-		})
+	errorMessage, isValid := h.validator.ValidateStruct(json)
+	if isValid == false {
+		customErr := customerror.NewFieldToAny(customerror.CodeValidationFailed, "Validation failed",
+			errorMessage, nil,
+		)
+		c.Error(customErr)
 		return
 	}
 
 	// Convert to entity and call usecase
 	user := json.ToUserLogin()
-	err := h.usecase.Login(c, &user, utils.VerifyPassword, utils.GenerateToken)
+	err = h.usecase.Login(c.Request.Context(), &user, utils.VerifyPassword, utils.GenerateToken)
 
 	// If error occurs during usecase execution, return error response
 	if err != nil {
-		c.JSON(http.StatusNotFound, response.BindErrorResponse{
-			Status:  http.StatusNotFound,
-			Message: "Not found",
-			Errors: map[string]string{
-				"error": err.Error(),
-			},
-		})
+		c.Error(err)
 		return
 	}
+
 	// Return success response
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
@@ -126,7 +121,7 @@ func (h *authHandler) Register(c *gin.Context) {
 
 	// Convert to entity and call usecase
 	user := json.ToUserRegister()
-	err = h.usecase.Register(c, &user, utils.HashPassword)
+	err = h.usecase.Register(c.Request.Context(), &user, utils.HashPassword)
 
 	// If error occurs during usecase execution, return error response
 	if err != nil {
