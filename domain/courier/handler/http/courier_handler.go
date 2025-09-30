@@ -78,7 +78,13 @@ func (h *courierHandler) Login(c *gin.Context) {
 	}
 
 	courier := json.ToCourierLogin()
-	courierResult, err := h.usecase.Login(c.Request.Context(), courier.Email, courier.Password, utils.VerifyPassword)
+	courierResult, err := h.usecase.Login(
+		c.Request.Context(),
+		courier.Email,
+		courier.Password,
+		utils.VerifyPassword,
+		utils.GenerateTokenFromIdAndEmail,
+	)
 
 	// If error occurs during usecase execution, return error response
 	if err != nil {

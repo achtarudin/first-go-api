@@ -4,7 +4,6 @@ import (
 	"context"
 	"cutbray/first_api/domain/courier/entity"
 	"cutbray/first_api/domain/courier/repository"
-	"cutbray/first_api/pkg/utils"
 	"errors"
 
 	"gorm.io/gorm"
@@ -12,9 +11,10 @@ import (
 
 type hashPasswordFunc func(password string) (string, error)
 type verifyPasswordFunc func(password string, hash string) bool
+type generateTokenFunc func(id int, email string) (string, error)
 
 type CourierUsecase interface {
-	Login(ctx context.Context, email string, password string, verifyPassword verifyPasswordFunc) (*entity.Courier, error)
+	Login(ctx context.Context, email string, password string, verifyPassword verifyPasswordFunc, generateToken generateTokenFunc) (*entity.Courier, error)
 	Register(ctx context.Context, courier *entity.Courier, hashPassword hashPasswordFunc) (*entity.Courier, error)
 	GetAllCouriers(ctx context.Context, search *entity.SearchCourier) (*entity.CourierWithPaginate[entity.Courier], error)
 	GetCourierByLongLat(ctx context.Context, search *entity.SearchByLongLatCourier) (*entity.CourierWithPaginate[entity.Courier], error)
@@ -34,7 +34,7 @@ func NewCourierUsecase(repo repository.CourierRepository) CourierUsecase {
 }
 
 // Login implements AuthUsecase.
-func (c *courierUsecase) Login(ctx context.Context, email string, password string, verifyPassword verifyPasswordFunc) (*entity.Courier, error) {
+func (c *courierUsecase) Login(ctx context.Context, email string, password string, verifyPassword verifyPasswordFunc, generateToken generateTokenFunc) (*entity.Courier, error) {
 
 	var foundCourier *entity.Courier
 
@@ -60,7 +60,7 @@ func (c *courierUsecase) Login(ctx context.Context, email string, password strin
 		}
 
 		// Generate token
-		token, txErr := utils.GenerateTokenFromIdAndEmail(foundCourier.ID, foundCourier.Email)
+		token, txErr := generateToken(foundCourier.ID, foundCourier.Email)
 		if txErr != nil {
 			txErr = errors.New("failed generate token")
 			return txErr
@@ -126,6 +126,7 @@ func (c *courierUsecase) GetAllCouriers(ctx context.Context, searchParams *entit
 
 		return nil
 	})
+
 	return couriers, err
 
 }

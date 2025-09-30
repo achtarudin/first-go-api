@@ -4,7 +4,9 @@ import (
 	"context"
 	"cutbray/first_api/domain/courier/entity"
 	"cutbray/first_api/infra"
+	"cutbray/first_api/pkg/customerror"
 	"cutbray/first_api/pkg/model"
+	"cutbray/first_api/pkg/utils"
 	"errors"
 	"fmt"
 	"strings"
@@ -67,11 +69,23 @@ func (c *courierRepository) Create(ctx context.Context, courier *entity.Courier,
 	result := tx.Create(&userModel)
 
 	if result.Error != nil {
-		// Cek error duplikat dari MySQL
-		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
-			return nil, errors.New("email already exists")
-		}
-		return nil, result.Error
+
+		isDuplicateKey := errors.Is(result.Error, gorm.ErrDuplicatedKey)
+
+		return nil, utils.IfElse(isDuplicateKey,
+			customerror.New(
+				customerror.CodeConflict,
+				"email already exists",
+				map[string]any{"email": "email already exists"},
+				result.Error,
+			),
+			customerror.New(
+				customerror.CodeInternal,
+				"failed to save the user",
+				nil,
+				result.Error,
+			),
+		)
 	}
 
 	createdCourier := &entity.Courier{
@@ -92,12 +106,22 @@ func (c *courierRepository) FindRoleCourier(ctx context.Context, roleName model.
 	var roleModel model.Role
 	result := tx.First(&roleModel, "name = ?", roleName)
 
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return 0, fmt.Errorf("role %s not found", roleName)
-	}
-
 	if result.Error != nil {
-		return 0, result.Error
+		isNotfound := errors.Is(result.Error, gorm.ErrRecordNotFound)
+		return 0, utils.IfElse(isNotfound,
+			customerror.New(
+				customerror.CodeNotFound,
+				"Role not found",
+				map[string]any{"role": "Role not found"},
+				result.Error,
+			),
+			customerror.New(
+				customerror.CodeInternal,
+				"Internal server error",
+				nil,
+				result.Error,
+			),
+		)
 	}
 
 	return roleModel.ID, nil
@@ -124,10 +148,22 @@ func (c *courierRepository) FindByEmail(ctx context.Context, email string, roleI
 		Preload("Courier").Preload("Roles").First(&userModel)
 
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, errors.New("user not found") // Pesan error bisa disesuaikan
-		}
-		return nil, result.Error // Kembalikan error database lainnya
+		isNotfound := errors.Is(result.Error, gorm.ErrRecordNotFound)
+
+		return nil, utils.IfElse(isNotfound,
+			customerror.New(
+				customerror.CodeNotFound,
+				"User not found",
+				map[string]any{"email": "user not found"},
+				result.Error,
+			),
+			customerror.New(
+				customerror.CodeInternal,
+				"Internal server error",
+				nil,
+				result.Error,
+			),
+		)
 	}
 
 	foundCourier := &entity.Courier{
@@ -204,7 +240,12 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.Se
 	}
 
 	if err := outerQuery.Count(&total).Error; err != nil {
-		return nil, err
+		return nil, customerror.New(
+			customerror.CodeInternal,
+			"Internal server error",
+			nil,
+			err,
+		)
 	}
 
 	if total > 0 {
@@ -219,7 +260,12 @@ func (c *courierRepository) ReadAll(ctx context.Context, searchParams *entity.Se
 			Scan(&results).Error
 
 		if err != nil {
-			return nil, err
+			return nil, customerror.New(
+				customerror.CodeInternal,
+				"Internal server error",
+				nil,
+				err,
+			)
 		}
 	}
 
@@ -271,7 +317,12 @@ func (c *courierRepository) ReadByLongLat(ctx context.Context, searchParams *ent
 	var results []entity.Courier
 
 	if err := outerQuery.Count(&total).Error; err != nil {
-		return nil, err
+		return nil, customerror.New(
+			customerror.CodeInternal,
+			"Internal server error",
+			nil,
+			err,
+		)
 	}
 
 	if total > 0 {
@@ -284,7 +335,12 @@ func (c *courierRepository) ReadByLongLat(ctx context.Context, searchParams *ent
 			Scan(&results)
 
 		if result.Error != nil {
-			return nil, result.Error
+			return nil, customerror.New(
+				customerror.CodeInternal,
+				"Internal server error",
+				nil,
+				result.Error,
+			)
 		}
 	}
 
@@ -302,6 +358,7 @@ func (c *courierRepository) ReadNearest(ctx context.Context, searchParams *entit
 		tx = c.db.DB.WithContext(ctx)
 	}
 
+	// Find role ID for courier
 	roleId, err := c.FindRoleCourier(ctx, model.RoleCourier, nil)
 	if err != nil {
 		return nil, err
@@ -338,7 +395,12 @@ func (c *courierRepository) ReadNearest(ctx context.Context, searchParams *entit
 		Scan(&results)
 
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, customerror.New(
+			customerror.CodeInternal,
+			"Internal server error",
+			nil,
+			result.Error,
+		)
 	}
 	return &results, nil
 }
@@ -354,10 +416,21 @@ func (c *courierRepository) Update(ctx context.Context, userId int, courier *ent
 
 	// Handle error if is not existing user
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("courier with the given user id not found")
-		}
-		return nil, err
+		isNotfound := errors.Is(err, gorm.ErrRecordNotFound)
+		return nil, utils.IfElse(isNotfound,
+			customerror.New(
+				customerror.CodeNotFound,
+				"Courier with the given user id not found",
+				nil,
+				err,
+			),
+			customerror.New(
+				customerror.CodeInternal,
+				"Internal server error",
+				nil,
+				err,
+			),
+		)
 	}
 
 	// Update user
@@ -368,7 +441,12 @@ func (c *courierRepository) Update(ctx context.Context, userId int, courier *ent
 
 	// handle error if update user failed
 	if userUpdate.Error != nil {
-		return nil, userUpdate.Error
+		return nil, customerror.New(
+			customerror.CodeInternal,
+			"Internal server error",
+			nil,
+			userUpdate.Error,
+		)
 	}
 
 	// Update courier
@@ -392,13 +470,23 @@ func (c *courierRepository) Update(ctx context.Context, userId int, courier *ent
 
 	// Handle error if update courier failed
 	if courierUpdate.Error != nil {
-		return nil, courierUpdate.Error
+		return nil, customerror.New(
+			customerror.CodeInternal,
+			"Internal server error",
+			nil,
+			courierUpdate.Error,
+		)
 	}
 
 	// Reload the updated user and courier
 	err = tx.Preload("Courier").First(&existingUser, uint(userId)).Error
 	if err != nil {
-		return nil, err
+		return nil, customerror.New(
+			customerror.CodeInternal,
+			"Internal server error",
+			nil,
+			err,
+		)
 	}
 
 	updatedCourier := &entity.Courier{
@@ -424,23 +512,47 @@ func (c *courierRepository) Delete(ctx context.Context, userId int, tx *gorm.DB)
 	err := tx.Preload("Courier").First(&existingUser, uint(userId)).Error
 
 	// Handle error if is not existing user
+
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("courier with the given user id not found")
-		}
-		return nil, err
+		isNotfound := errors.Is(err, gorm.ErrRecordNotFound)
+		return nil, utils.IfElse(isNotfound,
+			customerror.New(
+				customerror.CodeNotFound,
+				"User not found",
+				nil,
+				err,
+			),
+			customerror.New(
+				customerror.CodeInternal,
+				"Internal server error",
+				nil,
+				err,
+			),
+		)
 	}
 
 	// Delete courier record first if present
 	if existingUser.Courier.ID != 0 {
-		if err := tx.Delete(&existingUser.Courier).Error; err != nil {
-			return nil, err
+		result := tx.Delete(&existingUser.Courier)
+		if result.Error != nil {
+			return nil, customerror.New(
+				customerror.CodeInternal,
+				"Failed to delete courier record",
+				nil,
+				result.Error,
+			)
 		}
 	}
 
 	// Delete user record
-	if err := tx.Delete(&existingUser).Error; err != nil {
-		return nil, err
+	result := tx.Delete(&existingUser)
+	if result.Error != nil {
+		return nil, customerror.New(
+			customerror.CodeInternal,
+			"Failed to delete user record",
+			nil,
+			result.Error,
+		)
 	}
 
 	deletedCourier := &entity.Courier{

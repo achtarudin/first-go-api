@@ -125,3 +125,11 @@ func DefaultIfZero[T comparable](ptr *T, defaultValue T) {
 		*ptr = defaultValue
 	}
 }
+
+// IfElse is a generic function that returns one of two values based on a boolean condition.
+func IfElse[T any](condition bool, ifTrue, ifFalse T) T {
+	if condition {
+		return ifTrue
+	}
+	return ifFalse
+}
