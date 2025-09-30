@@ -32,6 +32,7 @@ func NewMerchantHandler(
 
 func (h *merchantHandler) RegisterRoute() {
 	h.router.POST("/merchants/login", h.Login)
+	h.router.POST("/merchants/register", h.Register)
 	h.router.GET("/merchants/get-all", h.GetAll)
 	h.router.GET("/merchants/get-by-id", h.GetById)
 	h.router.GET("/merchants/get-by-user-id", h.GetByUserId)
@@ -117,10 +118,16 @@ func (h *merchantHandler) Register(c *gin.Context) {
 		return
 	}
 
+	merchant, err := h.usecase.Register(c.Request.Context(), json.ToMerchantRegister(), utils.HashPassword)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	c.JSON(http.StatusOK, response.SuccessResponse{
 		Status:  http.StatusOK,
 		Message: "Register success",
-		Data:    json.ToMerchantRegister(),
+		Data:    merchant,
 	})
 }
 

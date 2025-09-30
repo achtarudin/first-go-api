@@ -34,7 +34,8 @@ func NewCourierUsecase(repo repository.CourierRepository) CourierUsecase {
 }
 
 // Login implements AuthUsecase.
-func (c *courierUsecase) Login(ctx context.Context, email string, password string, verifyPassword verifyPasswordFunc, generateToken generateTokenFunc) (*entity.Courier, error) {
+func (c *courierUsecase) Login(ctx context.Context, email string, password string,
+	verifyPassword verifyPasswordFunc, generateToken generateTokenFunc) (*entity.Courier, error) {
 
 	var foundCourier *entity.Courier
 
