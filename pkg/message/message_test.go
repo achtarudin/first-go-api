@@ -203,7 +203,6 @@ func (suite *MessageSuite) TestGoroutine_CtxCancelWithChannel() {
 		{Message: Message{name: "Message Baz", slow: false}, err: Error},
 		{Message: Message{name: "Message Bar is slow 3 second and error", slow: true}, err: ErrorSlowAndError},
 		{Message: Message{name: "Message Foo is slow 3 second and error", slow: true}, err: ErrorSlowAndError},
-
 		{Message: Message{name: "Message Danu is slow 3 second and no error", slow: true}, err: nil},
 		{Message: Message{name: "Message Danu is slow 3 second and no error", slow: true}, err: nil},
 		{Message: Message{name: "Message Danu is slow 3 second and no error", slow: true}, err: nil},
