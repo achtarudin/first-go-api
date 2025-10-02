@@ -3,6 +3,7 @@ package message
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -15,48 +16,48 @@ type MessageFanOutAndInSuite struct {
 	suite.Suite
 }
 
-// func (suite *MessageFanOutAndInSuite) TestFanOut() {
-// 	messages := []*Message{
-// 		{name: "Alice (cepat)", slow: false},
-// 		{name: "Bob (lambat)", slow: true},
-// 		{name: "Charlie (cepat)", slow: false},
-// 		{name: "David (lambat)", slow: true},
-// 		{name: "Eve (cepat)", slow: false},
-// 		{name: "Frank (lambat)", slow: true},
-// 	}
+func (suite *MessageFanOutAndInSuite) TestFanOut() {
+	messages := []*Message{
+		{name: "Alice (cepat)", slow: false},
+		{name: "Bob (lambat)", slow: true},
+		{name: "Charlie (cepat)", slow: false},
+		{name: "David (lambat)", slow: true},
+		{name: "Eve (cepat)", slow: false},
+		{name: "Frank (lambat)", slow: true},
+	}
 
-// 	var wg sync.WaitGroup
-// 	numWorkers := 3
-// 	tasks := make(chan *Message, len(messages))
+	var wg sync.WaitGroup
+	numWorkers := 3
+	tasks := make(chan *Message, len(messages))
 
-// 	for i := 1; i <= numWorkers; i++ {
-// 		wg.Add(1)
+	for i := 1; i <= numWorkers; i++ {
+		wg.Add(1)
 
-// 		go func(index int, wait *sync.WaitGroup, taskChan <-chan *Message) {
-// 			defer wait.Done()
-// 			fmt.Println("Worker", index, "started")
+		go func(index int, wait *sync.WaitGroup, taskChan <-chan *Message) {
+			defer wait.Done()
+			fmt.Println("Worker", index, "started")
 
-// 			for task := range taskChan {
-// 				if task.slow {
-// 					task.SlowGreat()
-// 					suite.T().Log("Processing task SlowGreat:", task.name)
-// 				} else {
-// 					task.Great()
-// 					suite.T().Log("Processing task Great:", task.name)
-// 				}
-// 			}
-// 		}(i, &wg, tasks)
-// 	}
+			for task := range taskChan {
+				if task.slow {
+					task.SlowGreat()
+					suite.T().Log("Processing task SlowGreat:", task.name)
+				} else {
+					task.Great()
+					suite.T().Log("Processing task Great:", task.name)
+				}
+			}
+		}(i, &wg, tasks)
+	}
 
-// 	for _, msg := range messages {
-// 		tasks <- msg
-// 	}
+	for _, msg := range messages {
+		tasks <- msg
+	}
 
-// 	close(tasks)
-// 	wg.Wait()
+	close(tasks)
+	wg.Wait()
 
-// 	suite.True(true)
-// }
+	suite.True(true)
+}
 
 func (suite *MessageFanOutAndInSuite) TestFanIn() {
 
@@ -67,7 +68,7 @@ func (suite *MessageFanOutAndInSuite) TestFanIn() {
 		suite.True(timeEnd.Sub(timeStart) <= 4*time.Second, "Time taken should be less than 4 seconds")
 	}()
 
-	// var wg sync.WaitGroup
+	var wg sync.WaitGroup
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -97,10 +98,10 @@ func (suite *MessageFanOutAndInSuite) TestFanIn() {
 
 	for index := 1; index <= numWorkers; index++ {
 
-		// wg.Add(1)
+		wg.Add(1)
 
 		go func(workerIndex int, taskChan <-chan MessageWithError, resultsChan chan<- result) {
-			// defer wait.Done()
+			defer wg.Done()
 
 			fmt.Println("Worker", workerIndex, "started")
 			for task := range taskChan {
@@ -142,7 +143,7 @@ func (suite *MessageFanOutAndInSuite) TestFanIn() {
 	close(tasksChannel)
 
 	go func() {
-		// wg.Wait()
+		wg.Wait()
 		close(resultChannel)
 	}()
 
